@@ -1,12 +1,16 @@
+import asyncio
 import logging
+import os
 import time
 from pathlib import Path
 
+import anyio
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from app.quantum.engine import (
+    MAX_OPERATIONS,
     MAX_QUBITS,
     analyze_circuit,
     build_circuit,
@@ -23,6 +27,9 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
+
+MAX_PAYLOAD_BYTES = int(os.getenv("QUANTUMFORGE_MAX_PAYLOAD_BYTES", "1048576"))
+SIMULATION_TIMEOUT_SECONDS = float(os.getenv("QUANTUMFORGE_TIMEOUT_SECONDS", "15.0"))
 
 
 app = FastAPI(
@@ -69,7 +76,9 @@ class GateOperation(BaseModel):
 class CircuitSimulationRequest(BaseModel):
     n_qubits: int = Field(ge=1, le=MAX_QUBITS, description="Number of qubits (1-16)")
     operations: list[GateOperation] = Field(
-        default_factory=list, description="Sequence of gate operations"
+        default_factory=list,
+        max_length=MAX_OPERATIONS,
+        description="Sequence of gate operations",
     )
     shots: int = Field(
         default=1024, ge=1, le=100000, description="Measurement shot count"
@@ -113,6 +122,42 @@ class ErrorResponse(BaseModel):
 # --------------------------------------------------
 # Middleware
 # --------------------------------------------------
+
+
+@app.middleware("http")
+async def limit_payload_size(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > MAX_PAYLOAD_BYTES:
+        logger.warning(
+            "Rejected oversized payload: %s bytes (limit: %s)",
+            content_length,
+            MAX_PAYLOAD_BYTES,
+        )
+        return JSONResponse(
+            status_code=413,
+            content={
+                "detail": (
+                    f"Payload exceeds maximum allowed size "
+                    f"of {MAX_PAYLOAD_BYTES} bytes."
+                )
+            },
+        )
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:;"
+    )
+    return response
 
 
 @app.middleware("http")
@@ -217,25 +262,44 @@ def bell_circuit():
 @app.post(
     "/simulate/bell",
     response_model=SimulationResultResponse,
-    responses={400: {"model": ErrorResponse, "description": "Simulation error"}},
+    responses={
+        400: {"model": ErrorResponse, "description": "Simulation error"},
+        504: {"model": ErrorResponse, "description": "Simulation timeout"},
+    },
     summary="Simulate Bell state",
     description="Simulates measurement of the canonical two-qubit Bell state.",
 )
-def simulate_bell(request: SimulationRequest):
+async def simulate_bell(request: SimulationRequest):
     try:
         logger.info(
             "Simulating Bell circuit (shots=%d, seed=%d)",
             request.shots,
             request.seed,
         )
+        circuit = create_bell_circuit()
+        result = await asyncio.wait_for(
+            anyio.to_thread.run_sync(
+                lambda: simulate_circuit(
+                    circuit,
+                    shots=request.shots,
+                    seed=request.seed,
+                )
+            ),
+            timeout=SIMULATION_TIMEOUT_SECONDS,
+        )
         return {
             "name": "Bell State",
-            **simulate_circuit(
-                create_bell_circuit(),
-                shots=request.shots,
-                seed=request.seed,
-            ),
+            **result,
         }
+    except TimeoutError as exc:
+        logger.error(
+            "Bell simulation timed out after %s seconds",
+            SIMULATION_TIMEOUT_SECONDS,
+        )
+        raise HTTPException(
+            status_code=504,
+            detail=f"Simulation timed out after {SIMULATION_TIMEOUT_SECONDS} seconds.",
+        ) from exc
     except ValueError as exc:
         logger.warning("Bell simulation error: %s", exc)
         raise HTTPException(
@@ -253,7 +317,9 @@ def simulate_bell(request: SimulationRequest):
     "/simulate",
     response_model=SimulationResultResponse,
     responses={
-        400: {"model": ErrorResponse, "description": "Validation or simulation error"}
+        400: {"model": ErrorResponse, "description": "Validation or simulation error"},
+        413: {"model": ErrorResponse, "description": "Payload too large"},
+        504: {"model": ErrorResponse, "description": "Simulation timeout"},
     },
     summary="Simulate custom circuit",
     description=(
@@ -261,7 +327,7 @@ def simulate_bell(request: SimulationRequest):
         "quantum circuit with Qiskit Aer."
     ),
 )
-def simulate_general_circuit(
+async def simulate_general_circuit(
     request: CircuitSimulationRequest,
 ):
     try:
@@ -277,14 +343,30 @@ def simulate_general_circuit(
             operations=[operation.model_dump() for operation in request.operations],
         )
 
+        result = await asyncio.wait_for(
+            anyio.to_thread.run_sync(
+                lambda: simulate_circuit(
+                    circuit,
+                    shots=request.shots,
+                    seed=request.seed,
+                )
+            ),
+            timeout=SIMULATION_TIMEOUT_SECONDS,
+        )
+
         return {
             "name": "Custom Quantum Circuit",
-            **simulate_circuit(
-                circuit,
-                shots=request.shots,
-                seed=request.seed,
-            ),
+            **result,
         }
+    except TimeoutError as exc:
+        logger.error(
+            "Simulation timed out after %s seconds",
+            SIMULATION_TIMEOUT_SECONDS,
+        )
+        raise HTTPException(
+            status_code=504,
+            detail=f"Simulation timed out after {SIMULATION_TIMEOUT_SECONDS} seconds.",
+        ) from exc
     except ValueError as exc:
         logger.warning("Custom circuit simulation error: %s", exc)
         raise HTTPException(

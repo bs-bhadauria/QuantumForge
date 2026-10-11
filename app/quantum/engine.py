@@ -1,9 +1,11 @@
 import math
+import os
 
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
 
-MAX_QUBITS = 16
+MAX_QUBITS = int(os.getenv("QUANTUMFORGE_MAX_QUBITS", "16"))
+MAX_OPERATIONS = int(os.getenv("QUANTUMFORGE_MAX_OPERATIONS", "500"))
 
 SINGLE_QUBIT_GATES = {"h", "x", "y", "z", "s", "t", "rx", "ry", "rz"}
 
@@ -34,6 +36,12 @@ def build_circuit(
 
     if not isinstance(operations, list):
         raise ValueError("operations must be a list")
+
+    if len(operations) > MAX_OPERATIONS:
+        raise ValueError(
+            f"Circuit operations count ({len(operations)}) exceeds "
+            f"maximum limit of {MAX_OPERATIONS}"
+        )
 
     circuit = QuantumCircuit(n_qubits, n_qubits)
 

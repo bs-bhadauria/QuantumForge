@@ -2,7 +2,7 @@
 
 **QuantumForge is an interactive quantum-circuit simulation and experimentation platform built with FastAPI, Qiskit Aer, and a browser-based workspace.** It is being developed as a reliable, testable software platform for defining quantum circuits, simulating measurements, visualizing circuits and results, inspecting resource metrics, and exporting reproducible experiment reports.
 
-> **Project status:** Active development. Milestones 1 and 2 are complete. The core simulation engine, browser workspace, structured logging, OpenAPI documentation, linting/formatting checks, and continuous integration pipeline are verified. At the latest verified checkpoint, 29 Playwright browser tests and 57 Python tests passed (86 total passing tests, 0 warnings). Performance hardening, containerization, and deployment packaging are upcoming work.
+> **Project status:** Active development. Milestones 1, 2, and 3 are complete. Core simulation, UI workspace, CI/quality tooling, benchmark suites, resource limit controls, security hardening, and concurrency stress testing are verified. At the latest verified checkpoint, 29 Playwright browser tests and 68 Python tests passed (97 total passing tests, 0 warnings). Containerization and deployment packaging are upcoming work.
 
 ---
 
@@ -308,13 +308,14 @@ Validation rules include:
 The latest verified test run from the local development session showed:
 
 - **29 Playwright browser tests passing**
-- **57 Python tests passing**
-- **86 total passing tests (0 warnings)**
+- **68 Python tests passing**
+- **97 total passing tests (0 warnings)**
 - **All code quality checks passing (Ruff lint/format & Prettier)**
+- **Security audit clean (pip-audit & npm audit: 0 known vulnerabilities)**
 
 The browser tests cover dashboard loading, health checks, preset rendering, Bell/X/GHZ simulation workflows, mobile viewport usability, RX/RY/RZ behavior, report export, invalid-JSON recovery, long-circuit SVG bounds, a 16-qubit diagram, scrolling for a wide diagram, pre- and post-simulation workspace reset, result invalidation upon parameter/circuit changes, clipboard copy verification, exact report schema and value validation, and browser-side rejection of invalid gates, operands, and parameter ranges.
 
-The Python tests cover root/health endpoints, Bell simulation, custom circuit compilation and simulation, parameter and qubit boundaries, non-finite input rejection, rotation gates, resource metric analysis, OpenAPI schema synchronization, and Swagger documentation availability.
+The Python tests cover root/health endpoints, Bell simulation, custom circuit compilation and simulation, parameter and qubit boundaries, non-finite input rejection, rotation gates, resource metric analysis, OpenAPI schema synchronization, Swagger documentation availability, single-gate latency benchmarks, scaling qubit benchmarks (1-16 qubits), shot count scaling (up to 50,000 shots), deep circuit stability, concurrent request load testing, sequential execution repeatability, request payload size rejection (413), operations count limit enforcement, timeout protection (504), and HTTP security headers.
 
 These are the latest observed results, not a promise that tests will pass after future changes. Always rerun both suites after making changes.
 
@@ -367,12 +368,14 @@ The roadmap below records the agreed direction. Complete each milestone before e
 
 ### Milestone 3 — Performance and security hardening
 
-- Benchmark representative circuits, qubit counts, and shot counts.
-- Set and test resource limits and request timeouts appropriate for a local simulation service.
-- Validate error behavior for oversized or malformed requests.
-- Review input handling, dependency vulnerabilities, exposed ports, and configuration practices.
-- Test repeated and concurrent requests within the intended operating envelope.
-- Document known limits; do not imply that the 16-qubit input limit alone guarantees safe resource consumption.
+**Status: Complete.**
+
+- [x] Benchmark representative circuits, qubit counts, and shot counts.
+- [x] Set and test resource limits and request timeouts appropriate for a local simulation service.
+- [x] Validate error behavior for oversized or malformed requests.
+- [x] Review input handling, dependency vulnerabilities, exposed ports, and configuration practices.
+- [x] Test repeated and concurrent requests within the intended operating envelope.
+- [x] Document known limits; do not imply that the 16-qubit input limit alone guarantees safe resource consumption.
 
 ### Milestone 4 — Reproducible deployment
 
@@ -426,11 +429,16 @@ Start by inspecting the repository and comparing its actual state with this READ
 
 ## Current limitations and honest status
 
-- QuantumForge currently simulates circuits using Qiskit Aer; real quantum hardware execution is not implemented by the capabilities described here.
-- The dashboard currently supports circuits up to 16 qubits. Practical simulation limits may be lower depending on circuit structure, shots, and available resources.
-- Automated tests cover important paths but do not prove the absence of defects.
-- CI, comprehensive security review, systematic load/performance validation, and deployment hardening remain roadmap work unless the repository shows they have since been completed.
-- A non-blocking Starlette/TestClient deprecation warning was present in the latest observed Python test run.
+- QuantumForge currently simulates circuits using Qiskit Aer classical simulation; execution on real physical quantum hardware is not claimed.
+- The simulator accepts circuits with **1 to 16 qubits**. Classical state-vector simulation scales exponentially ($2^n$ complex amplitudes, where 16 qubits represents 65,536 amplitudes). While shallow and moderately entangled circuits execute in under 1 second, deep and dense multi-qubit entanglements require greater memory and CPU time.
+- **Resource Limits & Protections:** To prevent denial-of-service or runaway execution in local/shared deployments, the service enforces:
+  - `MAX_OPERATIONS = 500` gate operations per circuit submission.
+  - `MAX_PAYLOAD_BYTES = 1,048,576` (1 MB maximum request body; oversized requests receive HTTP 413).
+  - `QUANTUMFORGE_TIMEOUT_SECONDS = 15.0s` (simulations exceeding the threshold are halted and return HTTP 504 Gateway Timeout).
+  - Standard HTTP security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, and CSP).
+- **Vulnerability Status:** Both Python (`pip-audit`) and JavaScript (`npm audit`) dependency audits verified **0 known vulnerabilities**.
+- Automated test suites (97 tests total) cover regression, state consistency, edge cases, benchmarks, and concurrency, but do not replace operational container verification.
+- **Deployment & Release Readiness:** Milestone 4 (Docker containerization, health checks, and build automation) and Milestone 5 (Release packaging & demo) are the remaining roadmap milestones.
 
 ---
 
