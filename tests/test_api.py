@@ -208,3 +208,156 @@ def test_missing_required_qubit_count_rejected():
     )
 
     assert response.status_code == 422
+
+
+def test_duplicate_qubit_in_multi_qubit_gate_rejected():
+    response = client.post(
+        "/simulate",
+        json={
+            "n_qubits": 2,
+            "operations": [
+                {"name": "cx", "qubits": [0, 0], "params": []}
+            ],
+            "shots": 100,
+            "seed": 42,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "duplicate qubit" in response.json()["detail"].lower()
+
+
+def test_multi_qubit_gate_wrong_qubit_count_rejected():
+    response = client.post(
+        "/simulate",
+        json={
+            "n_qubits": 3,
+            "operations": [
+                {"name": "cx", "qubits": [0], "params": []}
+            ],
+            "shots": 100,
+            "seed": 42,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "requires 2 qubit(s)" in response.json()["detail"]
+
+
+def test_single_qubit_gate_wrong_qubit_count_rejected():
+    response = client.post(
+        "/simulate",
+        json={
+            "n_qubits": 2,
+            "operations": [
+                {"name": "h", "qubits": [0, 1], "params": []}
+            ],
+            "shots": 100,
+            "seed": 42,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "requires 1 qubit(s)" in response.json()["detail"]
+
+
+def test_non_rotation_gate_with_parameters_rejected():
+    response = client.post(
+        "/simulate",
+        json={
+            "n_qubits": 1,
+            "operations": [
+                {"name": "h", "qubits": [0], "params": [1.57]}
+            ],
+            "shots": 100,
+            "seed": 42,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "does not accept parameters" in response.json()["detail"]
+
+
+def test_rotation_gate_with_non_finite_parameter_rejected():
+    response = client.post(
+        "/simulate",
+        content=(
+            b'{"n_qubits": 1, "operations": [{"name": "rx", "qubits": [0], '
+            b'"params": [1e999]}], "shots": 100, "seed": 42}'
+        ),
+        headers={"Content-Type": "application/json"},
+    )
+
+    assert response.status_code == 422 or response.status_code == 400
+
+
+def test_out_of_bounds_qubit_index_rejected():
+    response = client.post(
+        "/simulate",
+        json={
+            "n_qubits": 2,
+            "operations": [{"name": "h", "qubits": [2], "params": []}],
+            "shots": 100,
+            "seed": 42,
+        },
+    )
+    assert response.status_code == 400
+    assert "qubit indices must be between 0 and 1" in response.json()["detail"]
+
+
+def test_rotation_gate_missing_parameters_rejected():
+    response = client.post(
+        "/simulate",
+        json={
+            "n_qubits": 1,
+            "operations": [{"name": "rx", "qubits": [0], "params": []}],
+            "shots": 100,
+            "seed": 42,
+        },
+    )
+    assert response.status_code == 400
+    assert "requires exactly one angle" in response.json()["detail"]
+
+
+def test_rotation_gate_multiple_parameters_rejected():
+    response = client.post(
+        "/simulate",
+        json={
+            "n_qubits": 1,
+            "operations": [{"name": "rx", "qubits": [0], "params": [1.0, 2.0]}],
+            "shots": 100,
+            "seed": 42,
+        },
+    )
+    assert response.status_code == 400
+    assert "requires exactly one angle" in response.json()["detail"]
+
+
+def test_rotation_gate_non_numeric_parameter_rejected():
+    response = client.post(
+        "/simulate",
+        json={
+            "n_qubits": 1,
+            "operations": [{"name": "rx", "qubits": [0], "params": ["invalid"]}],
+            "shots": 100,
+            "seed": 42,
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_multi_qubit_gates_duplicate_qubits_rejected():
+    for gate in ["cz", "swap"]:
+        response = client.post(
+            "/simulate",
+            json={
+                "n_qubits": 2,
+                "operations": [{"name": gate, "qubits": [1, 1], "params": []}],
+                "shots": 100,
+                "seed": 42,
+            },
+        )
+        assert response.status_code == 400
+        assert "duplicate qubit" in response.json()["detail"].lower()
+
+
