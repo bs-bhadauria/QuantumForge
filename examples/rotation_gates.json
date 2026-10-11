@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QuantumForge Continuous Rotation Gate Experiment",
+  "description": "Continuous rotation about the Y axis by pi/3 radians followed by Z phase rotation",
+  "n_qubits": 1,
+  "operations": [
+    {
+      "name": "ry",
+      "qubits": [0],
+      "params": [1.04719755]
+    },
+    {
+      "name": "rz",
+      "qubits": [0],
+      "params": [3.14159265]
+    }
+  ]
+}

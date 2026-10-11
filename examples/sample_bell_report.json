@@ -1,0 +1,39 @@
+{
+  "report_version": "1.0",
+  "platform": "QuantumForge",
+  "generated_at": "2026-10-12T01:18:00.000Z",
+  "experiment": {
+    "circuit_name": "Bell state",
+    "circuit_definition": {
+      "n_qubits": 2,
+      "operations": [
+        { "name": "h", "qubits": [0], "params": [] },
+        { "name": "cx", "qubits": [0, 1], "params": [] }
+      ]
+    },
+    "shots": 4096,
+    "seed": 42,
+    "simulator": "Qiskit Aer"
+  },
+  "results": {
+    "counts": {
+      "00": 2048,
+      "11": 2048
+    },
+    "probabilities": {
+      "00": 0.5,
+      "11": 0.5
+    }
+  },
+  "resources": {
+    "qubits": 2,
+    "classical_bits": 2,
+    "gate_count": 4,
+    "depth": 3,
+    "operations": {
+      "h": 1,
+      "cx": 1,
+      "measure": 2
+    }
+  }
+}

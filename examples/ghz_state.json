@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QuantumForge Three-Qubit GHZ State Circuit",
+  "description": "Greenberger-Horne-Zeilinger 3-qubit entangled state (|GHZ> = (|000> + |111>) / sqrt(2))",
+  "n_qubits": 3,
+  "operations": [
+    {
+      "name": "h",
+      "qubits": [0],
+      "params": []
+    },
+    {
+      "name": "cx",
+      "qubits": [0, 1],
+      "params": []
+    },
+    {
+      "name": "cx",
+      "qubits": [1, 2],
+      "params": []
+    }
+  ]
+}

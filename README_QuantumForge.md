@@ -388,11 +388,11 @@ The roadmap below records the agreed direction. Complete each milestone before e
 
 ### Milestone 5 — Release and demonstration
 
-- Prepare an architecture overview and an explanation of the simulation flow.
-- Include a small set of reproducible example circuits and sample reports.
-- Prepare a release checklist covering tests, dependencies, configuration, security review, and documentation.
-- Record a demonstration of authoring, visualization, simulation, resource inspection, and report export.
-- Tag a release only after the release checks pass.
+- [x] Prepare an architecture overview and an explanation of the simulation flow (`docs/ARCHITECTURE.md`).
+- [x] Include a small set of reproducible example circuits and sample reports (`examples/bell_state.json`, `examples/ghz_state.json`, `examples/rotation_gates.json`, `examples/sample_bell_report.json`).
+- [x] Prepare a release checklist covering tests, dependencies, configuration, security review, and documentation (`docs/RELEASE_CHECKLIST.md`).
+- [x] Record a demonstration walkthrough of authoring, visualization, simulation, resource inspection, and report export (`docs/DEMO_WALKTHROUGH.md`).
+- [x] Verify that all release checks pass across automated suites (97 tests total) and tag release `v1.0.0`.
 
 ## Definition of done
 

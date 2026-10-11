@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QuantumForge Bell State Entanglement Circuit",
+  "description": "Standard 2-qubit maximally entangled Bell state (|Phi+> = (|00> + |11>) / sqrt(2))",
+  "n_qubits": 2,
+  "operations": [
+    {
+      "name": "h",
+      "qubits": [0],
+      "params": []
+    },
+    {
+      "name": "cx",
+      "qubits": [0, 1],
+      "params": []
+    }
+  ]
+}
