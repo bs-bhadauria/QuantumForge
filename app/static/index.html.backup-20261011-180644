@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantumForge | Circuit Workspace</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: #141d31;
+      --panel2: #19253d;
+      --border: #293854;
+      --text: #edf2ff;
+      --muted: #9aaac6;
+      --accent: #60d7c2;
+      --blue: #83b3ff;
+      --danger: #ff8f9b;
+      --warning: #ffd17a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel2);
+      color: var(--text);
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: filter .15s ease, transform .15s ease;
+    }
+
+    button:hover:not(:disabled) { filter: brightness(1.15); }
+    button:active:not(:disabled) { transform: translateY(1px); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    button.primary {
+      background: var(--accent);
+      color: #071a1a;
+      border-color: var(--accent);
+      font-weight: 750;
+    }
+
+    button.secondary { background: transparent; }
+
+    button.danger {
+      border-color: #75404d;
+      color: #ffc0c7;
+    }
+
+    header {
+      min-height: 108px;
+      padding: 22px clamp(20px, 4vw, 58px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+      background: #0e1527;
+    }
+
+    .brand { display: flex; align-items: center; gap: 15px; }
+
+    .brand-mark {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      background: var(--accent);
+      color: #071a1a;
+      font-size: 27px;
+      font-weight: 900;
+    }
+
+    h1 { font-size: 24px; margin: 0; letter-spacing: -.5px; }
+    .subtitle { color: var(--muted); margin-top: 3px; }
+    .status { color: var(--accent); font-size: 13px; }
+    main { max-width: 1700px; margin: auto; padding: 30px clamp(16px, 3vw, 44px); }
+
+    .intro { margin-bottom: 26px; }
+    .intro h2 { font-size: 27px; margin: 0 0 7px; }
+    .intro p { color: var(--muted); margin: 0; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, .78fr) minmax(0, 1.42fr);
+      align-items: start;
+      gap: 22px;
+    }
+
+    .stack { display: grid; gap: 22px; min-width: 0; }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      background: var(--panel);
+    }
+
+    .panel h3 { font-size: 17px; margin: 0 0 16px; }
+    .section-number { color: var(--muted); font-weight: 650; }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field { min-width: 0; margin-bottom: 15px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+      margin-bottom: 7px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      color: var(--text);
+      background: #0a1121;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px #60d7c21f;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 300px;
+      font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+      tab-size: 2;
+    }
+
+    .hint { font-size: 12px; color: var(--muted); margin: 8px 0 16px; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .controls + .controls { margin-top: 10px; }
+
+    .notice {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }
+
+    .notice.visible { display: block; }
+    .notice.error { color: #ffd1d6; background: #3a1925; border: 1px solid #713747; }
+    .notice.success { color: #b8ffeb; background: #12352f; border: 1px solid #28665a; }
+    .notice.info { color: #c4d9ff; background: #172b4a; border: 1px solid #304f7e; }
+
+    .diagram-wrap {
+      background: #0a1222;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      min-height: 350px;
+      padding: 10px;
+      overflow: auto;
+    }
+
+    #circuitDiagram { display: block; width: 100%; min-width: 340px; }
+    .empty {
+      min-height: 320px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .empty[hidden] { display: none !important; }
+
+    .caption { color: var(--muted); font-size: 12px; margin-top: 10px; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--panel2);
+    }
+
+    .metric .label { font-size: 12px; color: var(--muted); }
+    .metric .value { font-size: 25px; font-weight: 800; margin-top: 3px; overflow-wrap: anywhere; }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .detail-row:last-child { border-bottom: 0; }
+    .detail-row span:first-child { color: var(--muted); }
+    .detail-row span:last-child { text-align: right; overflow-wrap: anywhere; }
+
+    .histogram { display: grid; gap: 13px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 65px minmax(0, 1fr) 100px;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .bitstring {
+      color: var(--blue);
+      font-family: ui-monospace, monospace;
+      font-weight: 750;
+    }
+
+    .bar-track {
+      height: 15px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #293852;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      transition: width .25s ease;
+    }
+
+    .bar-value { color: var(--muted); text-align: right; white-space: nowrap; }
+    .raw-output {
+      max-height: 380px;
+      overflow: auto;
+      padding: 15px;
+      margin: 0;
+      border-radius: 10px;
+      background: #0a1121;
+      color: #cbd8f2;
+      font: 12px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 30px 10px 8px;
+    }
+
+    .small-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+    .small-actions button { padding: 8px 12px; font-size: 12px; }
+
+    @media (max-width: 1050px) {
+      .workspace { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      header { align-items: flex-start; }
+      .status { display: none; }
+      .field-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .panel { padding: 16px; }
+      .metrics { gap: 8px; }
+      .metric { padding: 12px; }
+      .metric .value { font-size: 21px; }
+      .bar-row { grid-template-columns: 45px minmax(0, 1fr); }
+      .bar-value { grid-column: 2; text-align: left; }
+      .controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">Ψ</div>
+      <div>
+        <h1>QuantumForge</h1>
+        <div class="subtitle">Quantum Software Engineering Platform</div>
+      </div>
+    </div>
+    <div id="apiStatus" class="status" role="status">Checking API…</div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h2>Circuit workspace</h2>
+      <p>Define a circuit, simulate it with Qiskit Aer, and inspect its structure, measurement distribution, and resource metrics.</p>
+    </section>
+
+    <div class="workspace">
+      <section class="panel">
+        <h3><span class="section-number">01 /</span> Circuit definition</h3>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="preset">Load an example</label>
+            <select id="preset">
+              <option value="bell">Bell state</option>
+              <option value="x">X gate</option>
+              <option value="h">Hadamard</option>
+              <option value="ghz">Three-qubit GHZ</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="shots">Measurement shots</label>
+            <input id="shots" type="number" min="1" max="100000" step="1" value="4096">
+          </div>
+          <div class="field full">
+            <label for="seed">Random seed</label>
+            <input id="seed" type="number" min="0" step="1" value="42">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="circuitJson">Circuit JSON</label>
+          <textarea id="circuitJson" spellcheck="false" aria-describedby="jsonHint"></textarea>
+          <div id="jsonHint" class="hint">
+            Supported gates: h, x, y, z, s, t, rx, ry, rz, cx, cz, swap.
+            Rotation angles are in radians. All qubits are measured at the end.
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="renderButton" type="button">Render circuit</button>
+          <button id="runButton" class="primary" type="button">Run simulation</button>
+        </div>
+        <div class="controls">
+          <button id="resetButton" class="secondary" type="button">Reset workspace</button>
+          <button id="downloadReportButton" type="button" disabled>Download experiment report</button>
+        </div>
+        <div id="notice" class="notice" role="status" aria-live="polite"></div>
+      </section>
+
+      <div class="stack">
+        <section class="panel">
+          <h3><span class="section-number">02 /</span> Circuit diagram</h3>
+          <div class="diagram-wrap">
+            <div id="emptyState" class="empty">
+              Load a circuit or render your JSON to see the diagram.
+            </div>
+            <svg id="circuitDiagram" role="img" aria-label="Quantum circuit diagram" hidden></svg>
+          </div>
+          <div class="caption">Diagram generated from the submitted gate definitions. Measurement operations are appended by the backend.</div>
+        </section>
+
+        <section class="panel">
+          <h3><span class="section-number">03 /</span> Circuit resources</h3>
+          <div class="metrics">
+            <div class="metric"><div class="label">Qubits</div><div id="metricQubits" class="value">—</div></div>
+            <div class="metric"><div class="label">Gate count</div><div id="metricGates" class="value">—</div></div>
+            <div class="metric"><div class="label">Depth</div><div id="metricDepth" class="value">—</div></div>
+            <div class="metric"><div class="label">Shots</div><div id="metricShots" class="value">—</div></div>
+          </div>
+          <div style="margin-top:15px">
+            <div class="detail-row"><span>Classical bits</span><span id="metricClassical">—</span></div>
+            <div class="detail-row"><span>Gate operations</span><span id="metricOperations">—</span></div>
+            <div class="detail-row"><span>Execution backend</span><span>Qiskit Aer simulator</span></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3><span class="section-number">04 /</span> Measurement distribution</h3>
+          <div id="histogram" class="histogram">
+            <div class="caption">Run a simulation to see measurement counts and empirical probabilities.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3><span class="section-number">05 /</span> Raw experiment response</h3>
+          <pre id="rawResult" class="raw-output">No simulation has been run yet.</pre>
+          <div class="small-actions">
+            <button id="copyResultButton" type="button" disabled>Copy JSON response</button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <footer class="footer">
+      QuantumForge · Local quantum simulation · Results are generated by the backend API
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+
+    const SUPPORTED_GATES = new Set([
+      "h", "x", "y", "z", "s", "t",
+      "rx", "ry", "rz", "cx", "cz", "swap"
+    ]);
+
+    const PRESETS = {
+      bell: {
+        n_qubits: 2,
+        operations: [
+          { name: "h", qubits: [0], params: [] },
+          { name: "cx", qubits: [0, 1], params: [] }
+        ]
+      },
+      x: {
+        n_qubits: 1,
+        operations: [
+          { name: "x", qubits: [0], params: [] }
+        ]
+      },
+      h: {
+        n_qubits: 1,
+        operations: [
+          { name: "h", qubits: [0], params: [] }
+        ]
+      },
+      ghz: {
+        n_qubits: 3,
+        operations: [
+          { name: "h", qubits: [0], params: [] },
+          { name: "cx", qubits: [0, 1], params: [] },
+          { name: "cx", qubits: [1, 2], params: [] }
+        ]
+      }
+    };
+
+    let lastSuccessfulReport = null;
+    let lastSuccessfulResponse = null;
+    let busy = false;
+
+    function showNotice(message, type = "info") {
+      const notice = $("notice");
+      notice.textContent = message;
+      notice.className = `notice visible ${type}`;
+    }
+
+    function clearNotice() {
+      $("notice").textContent = "";
+      $("notice").className = "notice";
+    }
+
+    function readDefinition() {
+      let definition;
+
+      try {
+        definition = JSON.parse($("circuitJson").value);
+      } catch (error) {
+        throw new Error(`Invalid JSON: ${error.message}`);
+      }
+
+      validateDefinition(definition);
+      return definition;
+    }
+
+    function validateDefinition(definition) {
+      if (!definition || typeof definition !== "object" || Array.isArray(definition)) {
+        throw new Error("Circuit definition must be a JSON object.");
+      }
+
+      if (!Number.isInteger(definition.n_qubits) ||
+          definition.n_qubits < 1 ||
+          definition.n_qubits > 20) {
+        throw new Error("n_qubits must be an integer between 1 and 20.");
+      }
+
+      if (!Array.isArray(definition.operations)) {
+        throw new Error("operations must be an array.");
+      }
+
+      definition.operations.forEach((operation, index) => {
+        const prefix = `Operation ${index + 1}`;
+
+        if (!operation || typeof operation !== "object" || Array.isArray(operation)) {
+          throw new Error(`${prefix} must be an object.`);
+        }
+
+        const name = String(operation.name || "").toLowerCase();
+
+        if (!SUPPORTED_GATES.has(name)) {
+          throw new Error(`${prefix}: unsupported gate '${name || "(empty)"}'.`);
+        }
+
+        if (!Array.isArray(operation.qubits)) {
+          throw new Error(`${prefix}: qubits must be an array.`);
+        }
+
+        const expectedQubits = ["cx", "cz", "swap"].includes(name) ? 2 : 1;
+
+        if (operation.qubits.length !== expectedQubits) {
+          throw new Error(`${prefix}: gate '${name}' requires ${expectedQubits} qubit(s).`);
+        }
+
+        for (const q of operation.qubits) {
+          if (!Number.isInteger(q) || q < 0 || q >= definition.n_qubits) {
+            throw new Error(`${prefix}: qubit indices must be between 0 and ${definition.n_qubits - 1}.`);
+          }
+        }
+
+        if (new Set(operation.qubits).size !== operation.qubits.length) {
+          throw new Error(`${prefix}: a multi-qubit gate cannot use the same qubit twice.`);
+        }
+
+        const params = operation.params === undefined ? [] : operation.params;
+
+        if (!Array.isArray(params) || params.some((p) => typeof p !== "number" || !Number.isFinite(p))) {
+          throw new Error(`${prefix}: params must be an array of finite numbers.`);
+        }
+
+        const requiresAngle = ["rx", "ry", "rz"].includes(name);
+
+        if ((requiresAngle && params.length !== 1) || (!requiresAngle && params.length !== 0)) {
+          throw new Error(
+            requiresAngle
+              ? `${prefix}: gate '${name}' requires one angle in radians.`
+              : `${prefix}: gate '${name}' does not accept parameters.`
+          );
+        }
+      });
+    }
+
+    function setWorkspaceBusy(value) {
+      busy = value;
+      $("runButton").disabled = value;
+      $("renderButton").disabled = value;
+      $("preset").disabled = value;
+      $("shots").disabled = value;
+      $("seed").disabled = value;
+    }
+
+    function resetResults() {
+      lastSuccessfulReport = null;
+      lastSuccessfulResponse = null;
+      $("downloadReportButton").disabled = true;
+      $("copyResultButton").disabled = true;
+      $("rawResult").textContent = "No simulation has been run yet.";
+      $("histogram").innerHTML =
+        '<div class="caption">Run a simulation to see measurement counts and empirical probabilities.</div>';
+
+      for (const id of [
+        "metricQubits", "metricGates", "metricDepth",
+        "metricShots", "metricClassical", "metricOperations"
+      ]) {
+        $(id).textContent = "—";
+      }
+    }
+
+    function svgElement(tag, attrs = {}, text = null) {
+      const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+
+      for (const [key, value] of Object.entries(attrs)) {
+        element.setAttribute(key, String(value));
+      }
+
+      if (text !== null) element.textContent = text;
+      return element;
+    }
+
+    function drawCircuit() {
+      clearNotice();
+
+      try {
+        const definition = readDefinition();
+        renderCircuit(definition);
+        showNotice("Circuit diagram rendered successfully.", "success");
+      } catch (error) {
+        showNotice(error.message, "error");
+      }
+    }
+
+    function renderCircuit(definition) {
+      const svg = $("circuitDiagram");
+      const empty = $("emptyState");
+
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+      const n = definition.n_qubits;
+      const operations = definition.operations;
+      const left = 58;
+      const top = 42;
+      const rowGap = 65;
+      const colGap = 78;
+      const gateWidth = 42;
+      const bottom = top + (n - 1) * rowGap;
+      const height = Math.max(145, bottom + 48);
+      const width = left + (operations.length + 1) * colGap + 50;
+
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("height", height);
+      svg.style.height = `${height}px`;
+      svg.style.maxHeight = "none";
+      svg.hidden = false;
+      empty.hidden = true;
+
+      for (let q = 0; q < n; q++) {
+        const y = top + q * rowGap;
+
+        svg.appendChild(svgElement("text", {
+          x: 8, y: y + 5, fill: "#9aaac6",
+          "font-size": 13, "font-family": "monospace"
+        }, `q${q}`));
+
+        svg.appendChild(svgElement("line", {
+          x1: 38, y1: y, x2: width - 20, y2: y,
+          stroke: "#52627e", "stroke-width": 1.7
+        }));
+      }
+
+      operations.forEach((op, index) => {
+        const name = String(op.name).toLowerCase();
+        const qubits = op.qubits;
+        const x = left + index * colGap + 30;
+        const ys = qubits.map((q) => top + q * rowGap);
+        const isControlled = ["cx", "cz", "swap"].includes(name);
+
+        if (!SUPPORTED_GATES.has(name)) {
+          throw new Error(`Operation ${index + 1}: unsupported gate '${name}'.`);
+        }
+
+        if (isControlled) {
+          const y1 = Math.min(...ys);
+          const y2 = Math.max(...ys);
+
+          svg.appendChild(svgElement("line", {
+            x1: x, y1, x2: x, y2,
+            stroke: "#ffbd59", "stroke-width": 2.4
+          }));
+
+          if (name === "cx") {
+            svg.appendChild(svgElement("circle", {
+              cx: x, cy: ys[0], r: 5.5, fill: "#ffbd59"
+            }));
+
+            svg.appendChild(svgElement("circle", {
+              cx: x, cy: ys[1], r: 11,
+              fill: "#0a1222", stroke: "#ffbd59", "stroke-width": 2.2
+            }));
+
+            svg.appendChild(svgElement("line", {
+              x1: x - 7, y1: ys[1], x2: x + 7, y2: ys[1],
+              stroke: "#ffbd59", "stroke-width": 2
+            }));
+
+            svg.appendChild(svgElement("line", {
+              x1: x, y1: ys[1] - 7, x2: x, y2: ys[1] + 7,
+              stroke: "#ffbd59", "stroke-width": 2
+            }));
+          } else if (name === "cz") {
+            qubits.forEach((q) => {
+              svg.appendChild(svgElement("circle", {
+                cx: x, cy: top + q * rowGap, r: 6, fill: "#ffbd59"
+              }));
+            });
+          } else {
+            qubits.forEach((q) => {
+              const y = top + q * rowGap;
+              svg.appendChild(svgElement("path", {
+                d: `M ${x - 7} ${y - 7} L ${x + 7} ${y + 7} M ${x + 7} ${y - 7} L ${x - 7} ${y + 7}`,
+                stroke: "#ffbd59", "stroke-width": 2.4
+              }));
+            });
+          }
+        } else {
+          const y = ys[0];
+          const label = ["rx", "ry", "rz"].includes(name)
+            ? `${name.toUpperCase()}(${Number(op.params[0]).toFixed(2)})`
+            : name.toUpperCase();
+
+          const w = label.length > 5 ? 62 : gateWidth;
+          const xBox = x - w / 2;
+
+          svg.appendChild(svgElement("rect", {
+            x: xBox, y: y - 19, width: w, height: 38, rx: 7,
+            fill: "#13273a", stroke: "#60d7c2", "stroke-width": 1.8
+          }));
+
+          svg.appendChild(svgElement("text", {
+            x, y: y + 4, fill: "#a8fff0",
+            "font-size": label.length > 5 ? 9 : 12,
+            "font-weight": 750, "text-anchor": "middle"
+          }, label));
+        }
+      });
+
+      const measurementX = left + operations.length * colGap + 30;
+
+      for (let q = 0; q < n; q++) {
+        const y = top + q * rowGap;
+
+        svg.appendChild(svgElement("rect", {
+          x: measurementX - 15, y: y - 15,
+          width: 30, height: 30, rx: 4,
+          fill: "#17263c", stroke: "#9aaac6", "stroke-width": 1.4
+        }));
+
+        svg.appendChild(svgElement("text", {
+          x: measurementX, y: y + 4,
+          fill: "#e8efff", "font-size": 12,
+          "text-anchor": "middle"
+        }, "M"));
+      }
+
+      svg.setAttribute(
+        "aria-label",
+        `${n}-qubit circuit with ${operations.length} gate operations and measurements`
+      );
+    }
+
+    function updateResources(result, definition, shots) {
+      const r = result.resources || {};
+
+      $("metricQubits").textContent = r.qubits ?? definition.n_qubits;
+      $("metricGates").textContent = r.gate_count ?? "—";
+      $("metricDepth").textContent = r.depth ?? "—";
+      $("metricShots").textContent = result.shots ?? shots;
+      $("metricClassical").textContent = r.classical_bits ?? definition.n_qubits;
+
+      const ops = r.operations || {};
+      $("metricOperations").textContent = Object.entries(ops)
+        .map(([name, count]) => `${name}: ${count}`)
+        .join(" · ") || "—";
+    }
+
+    function updateHistogram(result) {
+      const container = $("histogram");
+      container.replaceChildren();
+
+      const counts = result.counts || {};
+      const entries = Object.entries(counts).sort(
+        (a, b) => Number(b[1]) - Number(a[1])
+      );
+
+      if (entries.length === 0) {
+        container.textContent = "The simulator returned no measurement counts.";
+        return;
+      }
+
+      const total = Number(result.shots) ||
+        entries.reduce((sum, entry) => sum + Number(entry[1]), 0);
+
+      const maxCount = Math.max(...entries.map((entry) => Number(entry[1])), 1);
+
+      for (const [bitstring, countValue] of entries) {
+        const count = Number(countValue);
+        const probability = total ? count / total : 0;
+        const row = document.createElement("div");
+        row.className = "bar-row";
+
+        const bits = document.createElement("div");
+        bits.className = "bitstring";
+        bits.textContent = bitstring;
+
+        const track = document.createElement("div");
+        track.className = "bar-track";
+
+        const fill = document.createElement("div");
+        fill.className = "bar-fill";
+        fill.style.width = `${(count / maxCount) * 100}%`;
+        track.appendChild(fill);
+
+        const value = document.createElement("div");
+        value.className = "bar-value";
+        value.textContent = `${count} · ${(probability * 100).toFixed(1)}%`;
+
+        row.append(bits, track, value);
+        container.appendChild(row);
+      }
+
+      const caption = document.createElement("div");
+      caption.className = "caption";
+      caption.textContent =
+        `${total} shots · ${entries.length} observed outcome(s). ` +
+        "Probabilities are empirical measurement frequencies.";
+      container.appendChild(caption);
+    }
+
+    async function checkHealth() {
+      const status = $("apiStatus");
+
+      try {
+        const response = await fetch("/health");
+        if (!response.ok) throw new Error("Health check failed");
+
+        const data = await response.json();
+        status.textContent = data.status === "ok" ? "API ok" : "API warning";
+        status.style.color = data.status === "ok" ? "var(--accent)" : "var(--warning)";
+      } catch {
+        status.textContent = "API unavailable";
+        status.style.color = "var(--danger)";
+      }
+    }
+
+    async function runSimulation() {
+      if (busy) return;
+      clearNotice();
+
+      let definition;
+      let shots;
+      let seed;
+
+      try {
+        definition = readDefinition();
+        shots = Number($("shots").value);
+        seed = Number($("seed").value);
+
+        if (!Number.isInteger(shots) || shots < 1 || shots > 100000) {
+          throw new Error("Measurement shots must be an integer between 1 and 100000.");
+        }
+
+        if (!Number.isInteger(seed) || seed < 0) {
+          throw new Error("Random seed must be a non-negative integer.");
+        }
+      } catch (error) {
+        showNotice(error.message, "error");
+        return;
+      }
+
+      setWorkspaceBusy(true);
+      $("runButton").textContent = "Simulating…";
+
+      try {
+        const response = await fetch("/simulate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            n_qubits: definition.n_qubits,
+            operations: definition.operations,
+            shots,
+            seed
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const detail = typeof data.detail === "string"
+            ? data.detail
+            : JSON.stringify(data.detail || data);
+          throw new Error(detail || `Simulation failed (${response.status}).`);
+        }
+
+        if (!data.counts || !data.resources) {
+          throw new Error("The API response is missing counts or resource metrics.");
+        }
+
+        renderCircuit(definition);
+        updateResources(data, definition, shots);
+        updateHistogram(data);
+        $("rawResult").textContent = JSON.stringify(data, null, 2);
+
+        lastSuccessfulResponse = data;
+        lastSuccessfulReport = {
+          report_version: "1.0",
+          platform: "QuantumForge",
+          generated_at: new Date().toISOString(),
+          experiment: {
+            circuit_name: data.name || "Custom Quantum Circuit",
+            circuit_definition: definition,
+            shots: data.shots ?? shots,
+            seed,
+            simulator: "Qiskit Aer"
+          },
+          results: {
+            counts: data.counts,
+            probabilities: data.probabilities || {}
+          },
+          resources: data.resources
+        };
+
+        $("downloadReportButton").disabled = false;
+        $("copyResultButton").disabled = false;
+        showNotice("Simulation completed successfully.", "success");
+      } catch (error) {
+        showNotice(error.message || "An unexpected simulation error occurred.", "error");
+      } finally {
+        setWorkspaceBusy(false);
+        $("runButton").textContent = "Run simulation";
+      }
+    }
+
+    function downloadExperimentReport() {
+      if (!lastSuccessfulReport) {
+        showNotice("Run a simulation successfully before downloading a report.", "error");
+        return;
+      }
+
+      const blob = new Blob(
+        [JSON.stringify(lastSuccessfulReport, null, 2)],
+        { type: "application/json" }
+      );
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+
+      link.href = url;
+      link.download = `quantumforge-report-${timestamp}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showNotice("Experiment report download initiated.", "success");
+    }
+
+    async function copyResult() {
+      if (!lastSuccessfulResponse) return;
+
+      try {
+        await navigator.clipboard.writeText(
+          JSON.stringify(lastSuccessfulResponse, null, 2)
+        );
+        showNotice("Simulation response copied to clipboard.", "success");
+      } catch {
+        showNotice("Clipboard access failed. Select and copy the raw JSON manually.", "error");
+      }
+    }
+
+    function loadPreset(name) {
+      const definition = PRESETS[name] || PRESETS.bell;
+      $("circuitJson").value = JSON.stringify(definition, null, 2);
+      resetResults();
+      clearNotice();
+
+      try {
+        renderCircuit(definition);
+      } catch (error) {
+        showNotice(error.message, "error");
+      }
+    }
+
+    function resetWorkspace() {
+      $("preset").value = "bell";
+      $("shots").value = "4096";
+      $("seed").value = "42";
+      loadPreset("bell");
+      resetResults();
+      showNotice("Workspace reset to the Bell-state example.", "success");
+    }
+
+    $("preset").addEventListener("change", () => loadPreset($("preset").value));
+    $("renderButton").addEventListener("click", drawCircuit);
+    $("runButton").addEventListener("click", runSimulation);
+    $("resetButton").addEventListener("click", resetWorkspace);
+    $("downloadReportButton").addEventListener("click", downloadExperimentReport);
+    $("copyResultButton").addEventListener("click", copyResult);
+
+    $("circuitJson").addEventListener("input", () => {
+      resetResults();
+      clearNotice();
+    });
+
+    $("shots").addEventListener("input", resetResults);
+    $("seed").addEventListener("input", resetResults);
+
+    loadPreset("bell");
+    checkHealth();
+  </script>
+</body>
+</html>
