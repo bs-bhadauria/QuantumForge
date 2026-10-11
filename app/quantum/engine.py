@@ -1,15 +1,11 @@
-
 import math
 
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
 
-
 MAX_QUBITS = 16
 
-SINGLE_QUBIT_GATES = {
-    "h", "x", "y", "z", "s", "t", "rx", "ry", "rz"
-}
+SINGLE_QUBIT_GATES = {"h", "x", "y", "z", "s", "t", "rx", "ry", "rz"}
 
 TWO_QUBIT_GATES = {"cx", "cz", "swap"}
 ROTATION_GATES = {"rx", "ry", "rz"}
@@ -34,9 +30,7 @@ def build_circuit(
         or not isinstance(n_qubits, int)
         or not 1 <= n_qubits <= MAX_QUBITS
     ):
-        raise ValueError(
-            f"n_qubits must be between 1 and {MAX_QUBITS}"
-        )
+        raise ValueError(f"n_qubits must be between 1 and {MAX_QUBITS}")
 
     if not isinstance(operations, list):
         raise ValueError("operations must be a list")
@@ -57,9 +51,7 @@ def build_circuit(
         name = name.lower()
 
         if name not in SINGLE_QUBIT_GATES | TWO_QUBIT_GATES:
-            raise ValueError(
-                f"Operation {index}: unsupported gate '{name}'"
-            )
+            raise ValueError(f"Operation {index}: unsupported gate '{name}'")
 
         if not isinstance(qubits, list):
             raise ValueError(f"Operation {index}: qubits must be a list")
@@ -68,8 +60,7 @@ def build_circuit(
 
         if len(qubits) != expected:
             raise ValueError(
-                f"Operation {index}: gate '{name}' requires "
-                f"{expected} qubit(s)"
+                f"Operation {index}: gate '{name}' requires {expected} qubit(s)"
             )
 
         for qubit in qubits:
@@ -94,8 +85,7 @@ def build_circuit(
         if name in ROTATION_GATES:
             if len(params) != 1:
                 raise ValueError(
-                    f"Operation {index}: gate '{name}' requires "
-                    "exactly one angle"
+                    f"Operation {index}: gate '{name}' requires exactly one angle"
                 )
 
             angle = params[0]
@@ -105,9 +95,7 @@ def build_circuit(
                 or not isinstance(angle, (int, float))
                 or not math.isfinite(angle)
             ):
-                raise ValueError(
-                    f"Operation {index}: angle must be a finite number"
-                )
+                raise ValueError(f"Operation {index}: angle must be a finite number")
         elif params:
             raise ValueError(
                 f"Operation {index}: gate '{name}' does not accept parameters"
@@ -135,10 +123,7 @@ def analyze_circuit(circuit: QuantumCircuit) -> dict:
         "classical_bits": circuit.num_clbits,
         "gate_count": circuit.size(),
         "depth": circuit.depth(),
-        "operations": {
-            name: int(count)
-            for name, count in circuit.count_ops().items()
-        },
+        "operations": {name: int(count) for name, count in circuit.count_ops().items()},
     }
 
 
@@ -148,18 +133,10 @@ def simulate_circuit(
     seed: int = 42,
 ) -> dict:
     """Run a circuit using the local Aer simulator."""
-    if (
-        isinstance(shots, bool)
-        or not isinstance(shots, int)
-        or shots < 1
-    ):
+    if isinstance(shots, bool) or not isinstance(shots, int) or shots < 1:
         raise ValueError("shots must be a positive integer")
 
-    if (
-        isinstance(seed, bool)
-        or not isinstance(seed, int)
-        or seed < 0
-    ):
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a non-negative integer")
 
     simulator = AerSimulator(seed_simulator=seed)
@@ -181,9 +158,6 @@ def simulate_circuit(
     return {
         "shots": shots,
         "counts": dict(counts),
-        "probabilities": {
-            state: count / shots
-            for state, count in counts.items()
-        },
+        "probabilities": {state: count / shots for state, count in counts.items()},
         "resources": analyze_circuit(circuit),
     }

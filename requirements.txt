@@ -1,6 +1,10 @@
+# Core Quantum Simulation & Backend Dependencies
+qiskit==2.5.2
+qiskit-aer==0.17.2
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
 
-qiskit
-qiskit-aer
-fastapi
-uvicorn[standard]
-pytest
+# Testing & Quality Dependencies
+pytest==9.1.1
+httpx2==2.13.1
+ruff==0.17.0

@@ -57,9 +57,7 @@ def test_custom_x_gate_endpoint():
         "/simulate",
         json={
             "n_qubits": 1,
-            "operations": [
-                {"name": "x", "qubits": [0], "params": []}
-            ],
+            "operations": [{"name": "x", "qubits": [0], "params": []}],
             "shots": 256,
             "seed": 42,
         },
@@ -141,9 +139,7 @@ def test_invalid_gate_returns_error():
         "/simulate",
         json={
             "n_qubits": 1,
-            "operations": [
-                {"name": "unknown", "qubits": [0], "params": []}
-            ],
+            "operations": [{"name": "unknown", "qubits": [0], "params": []}],
             "shots": 100,
             "seed": 42,
         },
@@ -158,9 +154,7 @@ def test_invalid_qubit_returns_error():
         "/simulate",
         json={
             "n_qubits": 2,
-            "operations": [
-                {"name": "x", "qubits": [2], "params": []}
-            ],
+            "operations": [{"name": "x", "qubits": [2], "params": []}],
             "shots": 100,
             "seed": 42,
         },
@@ -215,9 +209,7 @@ def test_duplicate_qubit_in_multi_qubit_gate_rejected():
         "/simulate",
         json={
             "n_qubits": 2,
-            "operations": [
-                {"name": "cx", "qubits": [0, 0], "params": []}
-            ],
+            "operations": [{"name": "cx", "qubits": [0, 0], "params": []}],
             "shots": 100,
             "seed": 42,
         },
@@ -232,9 +224,7 @@ def test_multi_qubit_gate_wrong_qubit_count_rejected():
         "/simulate",
         json={
             "n_qubits": 3,
-            "operations": [
-                {"name": "cx", "qubits": [0], "params": []}
-            ],
+            "operations": [{"name": "cx", "qubits": [0], "params": []}],
             "shots": 100,
             "seed": 42,
         },
@@ -249,9 +239,7 @@ def test_single_qubit_gate_wrong_qubit_count_rejected():
         "/simulate",
         json={
             "n_qubits": 2,
-            "operations": [
-                {"name": "h", "qubits": [0, 1], "params": []}
-            ],
+            "operations": [{"name": "h", "qubits": [0, 1], "params": []}],
             "shots": 100,
             "seed": 42,
         },
@@ -266,9 +254,7 @@ def test_non_rotation_gate_with_parameters_rejected():
         "/simulate",
         json={
             "n_qubits": 1,
-            "operations": [
-                {"name": "h", "qubits": [0], "params": [1.57]}
-            ],
+            "operations": [{"name": "h", "qubits": [0], "params": [1.57]}],
             "shots": 100,
             "seed": 42,
         },
@@ -361,3 +347,32 @@ def test_multi_qubit_gates_duplicate_qubits_rejected():
         assert "duplicate qubit" in response.json()["detail"].lower()
 
 
+def test_openapi_schema_synchronized_with_models():
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+    schema = response.json()
+
+    assert schema["info"]["title"] == "QuantumForge API"
+    assert "/simulate" in schema["paths"]
+    assert "/simulate/bell" in schema["paths"]
+    assert "/circuits/bell" in schema["paths"]
+    assert "/health" in schema["paths"]
+
+    components = schema["components"]["schemas"]
+    for expected_schema in [
+        "CircuitResourcesResponse",
+        "SimulationResultResponse",
+        "BellCircuitResponse",
+        "HealthResponse",
+        "RootResponse",
+        "CircuitSimulationRequest",
+        "SimulationRequest",
+        "GateOperation",
+    ]:
+        assert expected_schema in components
+
+
+def test_docs_page_is_available():
+    response = client.get("/docs")
+    assert response.status_code == 200
+    assert "swagger" in response.text.lower()

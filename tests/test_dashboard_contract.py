@@ -87,9 +87,7 @@ def test_invalid_gate_is_rejected():
         "/simulate",
         json={
             "n_qubits": 1,
-            "operations": [
-                {"name": "not_a_gate", "qubits": [0], "params": []}
-            ],
+            "operations": [{"name": "not_a_gate", "qubits": [0], "params": []}],
             "shots": 10,
             "seed": 42,
         },
@@ -99,8 +97,7 @@ def test_invalid_gate_is_rejected():
 
 def test_dashboard_contains_required_workspace_features():
     html = (
-        Path(__file__).resolve().parents[1]
-        / "app" / "static" / "index.html"
+        Path(__file__).resolve().parents[1] / "app" / "static" / "index.html"
     ).read_text(encoding="utf-8")
 
     for expected in (

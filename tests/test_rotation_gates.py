@@ -4,8 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.quantum.engine import build_circuit, analyze_circuit
-
+from app.quantum.engine import analyze_circuit, build_circuit
 
 client = TestClient(app)
 

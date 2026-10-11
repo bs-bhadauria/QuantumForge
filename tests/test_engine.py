@@ -1,7 +1,6 @@
-
 from app.quantum.engine import (
-    create_bell_circuit,
     analyze_circuit,
+    create_bell_circuit,
     simulate_circuit,
 )
 
@@ -38,6 +37,7 @@ def test_bell_state_measurements():
 
 def test_build_circuit_rejects_invalid_qubit_count():
     import pytest
+
     from app.quantum.engine import build_circuit
 
     for invalid_n in [0, 17, -1, "2", True, False, None]:
@@ -47,6 +47,7 @@ def test_build_circuit_rejects_invalid_qubit_count():
 
 def test_build_circuit_rejects_non_list_operations():
     import pytest
+
     from app.quantum.engine import build_circuit
 
     for invalid_ops in ["ops", 123, {"name": "h"}, None]:
@@ -56,6 +57,7 @@ def test_build_circuit_rejects_non_list_operations():
 
 def test_build_circuit_rejects_non_dict_operation():
     import pytest
+
     from app.quantum.engine import build_circuit
 
     with pytest.raises(ValueError, match="Operation 0 must be an object"):
@@ -64,6 +66,7 @@ def test_build_circuit_rejects_non_dict_operation():
 
 def test_build_circuit_rejects_invalid_gate_name():
     import pytest
+
     from app.quantum.engine import build_circuit
 
     with pytest.raises(ValueError, match="name must be a string"):
@@ -75,6 +78,7 @@ def test_build_circuit_rejects_invalid_gate_name():
 
 def test_build_circuit_rejects_invalid_qubits_format_and_count():
     import pytest
+
     from app.quantum.engine import build_circuit
 
     with pytest.raises(ValueError, match="qubits must be a list"):
@@ -89,6 +93,7 @@ def test_build_circuit_rejects_invalid_qubits_format_and_count():
 
 def test_build_circuit_rejects_qubits_out_of_range():
     import pytest
+
     from app.quantum.engine import build_circuit
 
     for bad_qubit in [-1, 2, 5, True, "0"]:
@@ -98,6 +103,7 @@ def test_build_circuit_rejects_qubits_out_of_range():
 
 def test_build_circuit_rejects_duplicate_qubits():
     import pytest
+
     from app.quantum.engine import build_circuit
 
     for gate in ["cx", "cz", "swap"]:
@@ -107,7 +113,9 @@ def test_build_circuit_rejects_duplicate_qubits():
 
 def test_build_circuit_rejects_invalid_params():
     import math
+
     import pytest
+
     from app.quantum.engine import build_circuit
 
     with pytest.raises(ValueError, match="params must be a list"):
@@ -129,6 +137,7 @@ def test_build_circuit_rejects_invalid_params():
 
 def test_simulate_circuit_rejects_invalid_inputs():
     import pytest
+
     from app.quantum.engine import create_bell_circuit, simulate_circuit
 
     circuit = create_bell_circuit()
@@ -140,4 +149,3 @@ def test_simulate_circuit_rejects_invalid_inputs():
     for invalid_seed in [-1, "42", True, 1.5, None]:
         with pytest.raises(ValueError, match="seed must be a non-negative integer"):
             simulate_circuit(circuit, seed=invalid_seed)
-

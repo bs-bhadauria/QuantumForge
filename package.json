@@ -1,9 +1,12 @@
 {
   "devDependencies": {
-    "@playwright/test": "^1.64.0"
+    "@playwright/test": "^1.64.0",
+    "prettier": "^3.9.10"
   },
   "scripts": {
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "lint:js": "prettier --check \"e2e/**/*.js\" \"playwright.config.js\"",
+    "format:js": "prettier --write \"e2e/**/*.js\" \"playwright.config.js\""
   }
 }

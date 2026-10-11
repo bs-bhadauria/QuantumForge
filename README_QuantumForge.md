@@ -2,7 +2,7 @@
 
 **QuantumForge is an interactive quantum-circuit simulation and experimentation platform built with FastAPI, Qiskit Aer, and a browser-based workspace.** It is being developed as a reliable, testable software platform for defining quantum circuits, simulating measurements, visualizing circuits and results, inspecting resource metrics, and exporting reproducible experiment reports.
 
-> **Project status:** Active development. The core local simulation workflow and dashboard are implemented. At the latest verified checkpoint, 29 Playwright browser tests and 55 Python tests passed (84 total passing tests). Production readiness, comprehensive security validation, load/performance limits, and deployment hardening are still future work.
+> **Project status:** Active development. Milestones 1 and 2 are complete. The core simulation engine, browser workspace, structured logging, OpenAPI documentation, linting/formatting checks, and continuous integration pipeline are verified. At the latest verified checkpoint, 29 Playwright browser tests and 57 Python tests passed (86 total passing tests, 0 warnings). Performance hardening, containerization, and deployment packaging are upcoming work.
 
 ---
 
@@ -210,7 +210,18 @@ npx playwright install chromium
 
 If Playwright reports missing Linux system dependencies on a supported Ubuntu environment, use its documented dependency-install procedure. System package installation may require administrator privileges.
 
-### 4. Run the tests
+### 4. Run the tests & code quality checks
+
+Run Python and JavaScript linters and formatters:
+
+```bash
+# Python linting & formatting checks (ruff)
+ruff check .
+ruff format --check .
+
+# JavaScript code style checks (prettier)
+npm run lint:js
+```
 
 Run the Python suite:
 
@@ -297,16 +308,19 @@ Validation rules include:
 The latest verified test run from the local development session showed:
 
 - **29 Playwright browser tests passing**
-- **55 Python tests passing**
-- **84 total passing tests**
+- **57 Python tests passing**
+- **86 total passing tests (0 warnings)**
+- **All code quality checks passing (Ruff lint/format & Prettier)**
 
 The browser tests cover dashboard loading, health checks, preset rendering, Bell/X/GHZ simulation workflows, mobile viewport usability, RX/RY/RZ behavior, report export, invalid-JSON recovery, long-circuit SVG bounds, a 16-qubit diagram, scrolling for a wide diagram, pre- and post-simulation workspace reset, result invalidation upon parameter/circuit changes, clipboard copy verification, exact report schema and value validation, and browser-side rejection of invalid gates, operands, and parameter ranges.
 
+The Python tests cover root/health endpoints, Bell simulation, custom circuit compilation and simulation, parameter and qubit boundaries, non-finite input rejection, rotation gates, resource metric analysis, OpenAPI schema synchronization, and Swagger documentation availability.
+
 These are the latest observed results, not a promise that tests will pass after future changes. Always rerun both suites after making changes.
 
-### Known warning
+### Dependency compatibility & warning resolution
 
-The Python test run has reported a non-blocking Starlette deprecation warning about using `httpx` with `starlette.testclient`. The tests pass, but dependency compatibility should be reviewed deliberately rather than silencing the warning without understanding the supported versions.
+The earlier Starlette deprecation warning (`StarletteDeprecationWarning: Using 'httpx' with 'starlette.testclient' is deprecated; install 'httpx2' instead`) was investigated and cleanly resolved by adding `httpx2==2.13.1` to the environment and `requirements.txt`. The full Python test suite now runs with 0 warnings.
 
 ### Test policy
 
@@ -342,12 +356,14 @@ The roadmap below records the agreed direction. Complete each milestone before e
 
 ### Milestone 2 — Professional software quality and CI
 
-- Add a CI workflow (for example, GitHub Actions) to install dependencies and run Python and Playwright tests on pushes and pull requests.
-- Add suitable Python and JavaScript linting/formatting checks where they provide value.
-- Make test setup and dependency versions reproducible.
-- Review the Starlette/TestClient deprecation warning and select compatible dependency versions deliberately.
-- Improve structured logging and consistent API error responses.
-- Keep API documentation synchronized with request and response schemas.
+**Status: Complete.**
+
+- [x] Add a CI workflow (for example, GitHub Actions) to install dependencies and run Python and Playwright tests on pushes and pull requests.
+- [x] Add suitable Python and JavaScript linting/formatting checks where they provide value.
+- [x] Make test setup and dependency versions reproducible.
+- [x] Review the Starlette/TestClient deprecation warning and select compatible dependency versions deliberately.
+- [x] Improve structured logging and consistent API error responses.
+- [x] Keep API documentation synchronized with request and response schemas.
 
 ### Milestone 3 — Performance and security hardening
 

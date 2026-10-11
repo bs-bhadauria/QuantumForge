@@ -1,0 +1,18 @@
+[project]
+name = "quantumforge"
+version = "0.3.0"
+description = "Interactive quantum-circuit simulation and experimentation platform"
+readme = "README_QuantumForge.md"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
