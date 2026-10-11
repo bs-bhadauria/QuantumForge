@@ -82,3 +82,31 @@ jobs:
           path: |
             test-results/
             playwright-report/
+
+  docker-build-and-smoke-test:
+    name: Docker Build & Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Build Docker container image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: quantumforge:ci
+          load: true
+
+      - name: Test container startup and health check
+        run: |
+          docker run -d --name qf-ci-test -p 8000:8000 quantumforge:ci
+          sleep 5
+          docker ps
+          curl --fail --retry 5 --retry-delay 2 http://localhost:8000/health
+          docker stop qf-ci-test
+          docker rm qf-ci-test
+

@@ -1,0 +1,21 @@
+services:
+  quantumforge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: quantumforge:latest
+    container_name: quantumforge-app
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - QUANTUMFORGE_TIMEOUT_SECONDS=15.0
+      - QUANTUMFORGE_MAX_PAYLOAD_BYTES=1048576
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

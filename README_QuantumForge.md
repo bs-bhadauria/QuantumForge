@@ -379,11 +379,12 @@ The roadmap below records the agreed direction. Complete each milestone before e
 
 ### Milestone 4 — Reproducible deployment
 
-- Add a Docker image and a documented build/run workflow.
-- Keep configuration outside source code where appropriate.
-- Add a container health check and validate clean startup/shutdown behavior.
-- Document local development, testing, troubleshooting, and deployment assumptions.
-- Verify that the packaged deployment can run a circuit and export a report.
+- [x] Add a Docker image and a documented build/run workflow (`Dockerfile` multi-stage build with unprivileged `quantumuser`).
+- [x] Keep configuration outside source code where appropriate (`PORT`, `HOST`, `QUANTUMFORGE_TIMEOUT_SECONDS`, `QUANTUMFORGE_MAX_PAYLOAD_BYTES`).
+- [x] Add a container health check and validate clean startup/shutdown behavior (`HEALTHCHECK` via `/health`, verified healthy).
+- [x] Document local development, testing, troubleshooting, and deployment assumptions (`compose.yaml` and CLI run instructions).
+- [x] Verify that the packaged deployment can run a circuit and export a report (verified live via test container at port 8008).
+- [x] Integrated container build and smoke test into `.github/workflows/ci.yml`.
 
 ### Milestone 5 — Release and demonstration
 
@@ -437,8 +438,9 @@ Start by inspecting the repository and comparing its actual state with this READ
   - `QUANTUMFORGE_TIMEOUT_SECONDS = 15.0s` (simulations exceeding the threshold are halted and return HTTP 504 Gateway Timeout).
   - Standard HTTP security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, and CSP).
 - **Vulnerability Status:** Both Python (`pip-audit`) and JavaScript (`npm audit`) dependency audits verified **0 known vulnerabilities**.
-- Automated test suites (97 tests total) cover regression, state consistency, edge cases, benchmarks, and concurrency, but do not replace operational container verification.
-- **Deployment & Release Readiness:** Milestone 4 (Docker containerization, health checks, and build automation) and Milestone 5 (Release packaging & demo) are the remaining roadmap milestones.
+- Automated test suites (97 tests total) cover regression, state consistency, edge cases, benchmarks, and concurrency.
+- **Containerization & Deployment Status:** Milestone 4 completed with multi-stage Docker image, compose.yaml orchestration, automated `/health` container probes, and CI smoke tests.
+- **Remaining Roadmap:** Milestone 5 (Release packaging, example circuits catalog, and final release demonstration).
 
 ---
 
