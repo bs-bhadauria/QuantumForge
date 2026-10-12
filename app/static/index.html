@@ -597,6 +597,14 @@
       box-shadow: 0 4px 12px rgba(129, 140, 248, 0.35);
     }
 
+    .gate-chip.selected {
+      border-color: #38bdf8 !important;
+      background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6), inset 0 1px 2px rgba(255,255,255,0.4) !important;
+      transform: translateY(-2px);
+    }
+
     /* Algorithm Marketplace Badge */
     .algo-meta {
       display: flex;
@@ -622,13 +630,28 @@
       color: #fff;
     }
 
-    /* Diagram Interactive Wire Zones */
-    .wire-slot {
+    /* Diagram Interactive Wire Zones and Clickable Gates */
+    .interactive-gate {
       cursor: pointer;
+      transition: filter .15s ease, transform .15s ease;
+    }
+
+    .interactive-gate:hover {
+      filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.75)) !important;
+    }
+
+    .interactive-gate:hover rect {
+      stroke: #f43f5e !important;
+    }
+
+    .wire-slot-btn {
+      cursor: pointer;
+      opacity: 0;
       transition: opacity .15s ease;
     }
-    .wire-slot:hover {
-      opacity: 0.8;
+
+    .wire-slot-btn:hover {
+      opacity: 1;
     }
 
     /* Gate Action Buttons in Diagram */
@@ -731,7 +754,16 @@
 
         <!-- Interactive Visual Gate Toolbox -->
         <div class="gate-palette" role="toolbar" aria-label="Quantum Gate Palette">
-          <div class="palette-label">⚡ Visual Gate Toolbox (Click or Drag to Append)</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:6px">
+            <div class="palette-label">⚡ Visual Gate Toolbox</div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted)">
+              <span>Target wire:</span>
+              <select id="targetQubitSelect" style="width:auto; padding:4px 8px; font-size:12px; border-radius:6px">
+                <option value="0">q0</option>
+                <option value="1">q1</option>
+              </select>
+            </div>
+          </div>
           <button type="button" class="gate-chip" data-gate="h" title="Hadamard gate (Superposition)">H</button>
           <button type="button" class="gate-chip" data-gate="x" title="Pauli-X gate (Bit flip)">X</button>
           <button type="button" class="gate-chip" data-gate="y" title="Pauli-Y gate">Y</button>
@@ -993,6 +1025,46 @@
     let lastSuccessfulReport = null;
     let lastSuccessfulResponse = null;
     let busy = false;
+    let activeSelectedGate = "h";
+
+    function syncTargetQubitOptions(n_qubits) {
+      const select = $("targetQubitSelect");
+      if (!select) return;
+      const currentVal = Number(select.value) || 0;
+      select.replaceChildren();
+      for (let i = 0; i < n_qubits; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = `q${i}`;
+        if (i === currentVal || (currentVal >= n_qubits && i === 0)) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      }
+    }
+
+    function deleteGateAtIndex(index) {
+      let def;
+      try {
+        def = readDefinition();
+      } catch (error) {
+        showNotice(error.message, "error");
+        return;
+      }
+      if (!Array.isArray(def.operations) || index < 0 || index >= def.operations.length) {
+        return;
+      }
+      const removed = def.operations.splice(index, 1)[0];
+      $("circuitJson").value = JSON.stringify(def, null, 2);
+      resetResults();
+      clearNotice();
+      try {
+        renderCircuit(def);
+        showNotice(`Deleted gate '${removed.name.toUpperCase()}' at position ${index + 1}.`, "info");
+      } catch (err) {
+        showNotice(err.message, "error");
+      }
+    }
 
     function showNotice(message, type = "info") {
       const notice = $("notice");
@@ -1140,6 +1212,7 @@
       const empty = $("emptyState");
       const n = definition.n_qubits;
       const operations = definition.operations;
+      syncTargetQubitOptions(n);
 
       // Use a wider column for rotation labels so adjacent gates do not overlap.
       const gateLabels = operations.map((op) => {
@@ -1178,7 +1251,7 @@
       svg.hidden = false;
       empty.hidden = true;
 
-      // Draw wires first so gate symbols remain visually in front.
+      // Draw wires and invisible interactive click-to-append slot zones
       for (let q = 0; q < n; q++) {
         const y = top + q * rowGap;
 
@@ -1199,6 +1272,22 @@
           stroke: "#334155",
           "stroke-width": 1.8
         }));
+
+        // Clickable interactive wire zone to append selected gate on this specific qubit wire
+        const wireSlot = svgElement("rect", {
+          x: 38,
+          y: y - 16,
+          width: width - 50,
+          height: 32,
+          fill: "transparent",
+          class: "wire-slot-btn"
+        });
+        wireSlot.style.cursor = "pointer";
+        wireSlot.appendChild(svgElement("title", {}, `Click wire q${q} to append selected gate`));
+        wireSlot.addEventListener("click", () => {
+          appendGateToCircuit(activeSelectedGate, q);
+        });
+        svg.appendChild(wireSlot);
       }
 
       operations.forEach((op, index) => {
@@ -1209,9 +1298,15 @@
         const params = Array.isArray(op.params) ? op.params : [];
         const controlled = ["cx", "cz", "swap"].includes(name);
 
-        // A vertical connector joins the exact operands in their supplied order.
+        // Controlled multi-qubit gates
         if (controlled) {
-          svg.appendChild(svgElement("line", {
+          const group = svgElement("g", {
+            class: "interactive-gate",
+            title: `Click to delete ${name.toUpperCase()} gate on qubits [${qubits.join(", ")}]`
+          });
+          group.addEventListener("click", () => deleteGateAtIndex(index));
+
+          group.appendChild(svgElement("line", {
             x1: x,
             y1: ys[0],
             x2: x,
@@ -1222,14 +1317,14 @@
 
           if (name === "cx") {
             // Qiskit convention: qubits[0] is control; qubits[1] is target.
-            svg.appendChild(svgElement("circle", {
+            group.appendChild(svgElement("circle", {
               cx: x,
               cy: ys[0],
               r: 5.5,
               fill: "#fbbf24"
             }));
 
-            svg.appendChild(svgElement("circle", {
+            group.appendChild(svgElement("circle", {
               cx: x,
               cy: ys[1],
               r: 11,
@@ -1238,7 +1333,7 @@
               "stroke-width": 2.2
             }));
 
-            svg.appendChild(svgElement("path", {
+            group.appendChild(svgElement("path", {
               d: `M ${x - 7} ${ys[1]} H ${x + 7} M ${x} ${ys[1] - 7} V ${ys[1] + 7}`,
               stroke: "#fbbf24",
               "stroke-width": 2
@@ -1246,7 +1341,7 @@
           } else if (name === "cz") {
             // CZ is symmetric: both operand qubits receive a phase marker.
             for (const y of ys) {
-              svg.appendChild(svgElement("circle", {
+              group.appendChild(svgElement("circle", {
                 cx: x,
                 cy: y,
                 r: 6,
@@ -1256,7 +1351,7 @@
           } else {
             // SWAP exchanges the two operand states; X markers identify both ends.
             for (const y of ys) {
-              svg.appendChild(svgElement("path", {
+              group.appendChild(svgElement("path", {
                 d: `M ${x - 7} ${y - 7} L ${x + 7} ${y + 7} M ${x + 7} ${y - 7} L ${x - 7} ${y + 7}`,
                 stroke: "#fbbf24",
                 "stroke-width": 2.4,
@@ -1265,6 +1360,7 @@
             }
           }
 
+          svg.appendChild(group);
           return;
         }
 
@@ -1275,7 +1371,13 @@
           Math.min(100, 16 + label.length * 7)
         );
 
-        svg.appendChild(svgElement("rect", {
+        const gateGroup = svgElement("g", {
+          class: "interactive-gate",
+          title: `Click to delete ${label} gate on q${qubits[0]}`
+        });
+        gateGroup.addEventListener("click", () => deleteGateAtIndex(index));
+
+        gateGroup.appendChild(svgElement("rect", {
           x: x - labelWidth / 2,
           y: y - 19,
           width: labelWidth,
@@ -1286,7 +1388,7 @@
           "stroke-width": 1.8
         }));
 
-        svg.appendChild(svgElement("text", {
+        gateGroup.appendChild(svgElement("text", {
           x,
           y: y + 4,
           fill: "#f8fafc",
@@ -1295,6 +1397,8 @@
           "text-anchor": "middle",
           "font-family": "JetBrains Mono, monospace"
         }, label));
+
+        svg.appendChild(gateGroup);
       });
 
       // Measurement boxes represent the final measurements appended by the API.
@@ -1573,7 +1677,7 @@
       }
     }
 
-    function appendGateToCircuit(gateName) {
+    function appendGateToCircuit(gateName, targetQubit = null) {
       let definition;
       try {
         definition = readDefinition();
@@ -1589,9 +1693,23 @@
         definition.n_qubits = 2;
       }
 
+      // Determine target qubit wire
+      let q = targetQubit !== null ? Number(targetQubit) : (Number($("targetQubitSelect")?.value) || 0);
+      if (!Number.isInteger(q) || q < 0) q = 0;
+      if (q >= definition.n_qubits) q = definition.n_qubits - 1;
+
+      let qubits;
+      if (multiQubit) {
+        // Multi-qubit gate takes control/target pair. If q is the last qubit, pair with q - 1, else q + 1
+        let secondQ = q < definition.n_qubits - 1 ? q + 1 : q - 1;
+        qubits = [q, secondQ];
+      } else {
+        qubits = [q];
+      }
+
       const newOp = {
         name: gateName,
-        qubits: multiQubit ? [0, 1] : [0],
+        qubits: qubits,
         params: rotation ? [1.570796] : []
       };
 
@@ -1602,7 +1720,7 @@
 
       try {
         renderCircuit(definition);
-        showNotice(`Appended gate '${gateName.toUpperCase()}' to circuit.`, "info");
+        showNotice(`Appended gate '${gateName.toUpperCase()}' to wire q${q}.`, "info");
       } catch (err) {
         showNotice(err.message, "error");
       }
@@ -1645,12 +1763,23 @@
     }
 
     // Interactive Gate Toolbar Click Listeners
-    document.querySelectorAll(".gate-chip").forEach((chip) => {
+    const gateChips = document.querySelectorAll(".gate-chip");
+    gateChips.forEach((chip) => {
       chip.addEventListener("click", () => {
+        gateChips.forEach((c) => c.classList.remove("selected"));
+        chip.classList.add("selected");
         const gate = chip.getAttribute("data-gate");
-        if (gate) appendGateToCircuit(gate);
+        if (gate) {
+          activeSelectedGate = gate;
+          const targetQ = Number($("targetQubitSelect")?.value) || 0;
+          appendGateToCircuit(gate, targetQ);
+        }
       });
     });
+
+    // Default select first chip (H gate)
+    const initialHChip = document.querySelector(".gate-chip[data-gate='h']");
+    if (initialHChip) initialHChip.classList.add("selected");
 
     $("undoGateButton").addEventListener("click", undoLastGate);
 

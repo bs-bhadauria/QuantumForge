@@ -891,4 +891,52 @@ test.describe("QuantumForge Visual Gate Toolbox & Algorithm Marketplace", () => 
     expect(data.shots).toBe(4096);
     expect(data.counts).toBeTruthy();
   });
+
+  test("can target lower qubit wires and click wire slot or gate to add and delete", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+
+    // 1. Target wire q1 via select dropdown and append Pauli-X
+    const targetSelect = page.locator("#targetQubitSelect");
+    await expect(targetSelect).toBeVisible();
+    await targetSelect.selectOption("1");
+
+    const xChip = page.locator(".gate-chip[data-gate='x']");
+    await xChip.click();
+
+    // Verify it was appended to q1
+    let jsonValue = await page.locator("#circuitJson").inputValue();
+    let def = JSON.parse(jsonValue);
+    const lastOp = def.operations[def.operations.length - 1];
+    expect(lastOp.name).toBe("x");
+    expect(lastOp.qubits).toEqual([1]);
+
+    // 2. Click wire slot directly on q0 (class .wire-slot-btn) to append activeSelectedGate (x)
+    const wireSlots = page.locator("#circuitDiagram .wire-slot-btn");
+    await expect(wireSlots).toHaveCount(def.n_qubits);
+    await wireSlots.nth(0).click({ force: true });
+
+    // Verify active gate was appended to q0
+    jsonValue = await page.locator("#circuitJson").inputValue();
+    def = JSON.parse(jsonValue);
+    const newlyAddedOp = def.operations[def.operations.length - 1];
+    expect(newlyAddedOp.name).toBe("x");
+    expect(newlyAddedOp.qubits).toEqual([0]);
+
+    // 3. Click an existing interactive gate on the canvas to delete it
+    const initialOpCount = def.operations.length;
+    const interactiveGates = page.locator("#circuitDiagram .interactive-gate");
+    const countBefore = await interactiveGates.count();
+    expect(countBefore).toBe(initialOpCount);
+
+    // Click the last gate to delete it
+    await interactiveGates.last().click();
+
+    // Check notice and updated circuit operations count
+    await expect(page.locator("#notice")).toContainText("Deleted gate");
+    jsonValue = await page.locator("#circuitJson").inputValue();
+    def = JSON.parse(jsonValue);
+    expect(def.operations.length).toBe(initialOpCount - 1);
+  });
 });
