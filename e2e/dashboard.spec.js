@@ -807,3 +807,88 @@ test.describe("QuantumForge browser-side validation edge cases", () => {
     );
   });
 });
+
+test.describe("QuantumForge Visual Gate Toolbox & Algorithm Marketplace", () => {
+  test("clicking gate toolbar chips appends gates and updates diagram dynamically", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+
+    // Click Hadamard chip in toolbox
+    const hChip = page.locator(".gate-chip[data-gate='h']");
+    await expect(hChip).toBeVisible();
+    await hChip.click();
+
+    // Verify notice shows gate appended
+    await expect(page.locator("#notice")).toContainText("Appended gate 'H'");
+
+    // Check circuitJson textarea contains the new gate
+    const jsonValue = await page.locator("#circuitJson").inputValue();
+    expect(jsonValue).toContain('"name": "h"');
+
+    // Click undo button
+    const undoButton = page.locator("#undoGateButton");
+    await expect(undoButton).toBeVisible();
+    await undoButton.click();
+    await expect(page.locator("#notice")).toContainText(
+      "Removed last gate 'H'",
+    );
+  });
+
+  test("selecting Grover algorithm preset updates metadata banner and simulates correctly", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+
+    // Select grover_2q from marketplace
+    await page.locator("#preset").selectOption("grover_2q");
+
+    // Meta banner should be visible and show category
+    const banner = page.locator("#algoMetaBanner");
+    await expect(banner).toBeVisible();
+    await expect(page.locator("#algoCategoryBadge")).toContainText(
+      "Search & Cryptography",
+    );
+    await expect(page.locator("#algoDescriptionText")).toContainText("Grover");
+
+    // Simulate Grover circuit
+    const simulationResponse = page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/simulate") &&
+        response.request().method() === "POST",
+    );
+
+    await page.locator("#runButton").click();
+    const response = await simulationResponse;
+    expect(response.status()).toBe(200);
+
+    const data = await response.json();
+    // In ideal Grover 2Q search for |11>, outcome 11 has near 100% frequency
+    expect(data.counts["11"]).toBeGreaterThan(3500);
+  });
+
+  test("selecting VQE H2 molecular ansatz updates metadata banner and simulates correctly", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+
+    await page.locator("#preset").selectOption("vqe_h2");
+    const banner = page.locator("#algoMetaBanner");
+    await expect(banner).toBeVisible();
+    await expect(page.locator("#algoCategoryBadge")).toContainText("Chemistry");
+
+    const simulationResponse = page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/simulate") &&
+        response.request().method() === "POST",
+    );
+
+    await page.locator("#runButton").click();
+    const response = await simulationResponse;
+    expect(response.status()).toBe(200);
+
+    const data = await response.json();
+    expect(data.shots).toBe(4096);
+    expect(data.counts).toBeTruthy();
+  });
+});

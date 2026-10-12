@@ -9,6 +9,10 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+from app.quantum.algorithms import (
+    get_algorithm,
+    list_algorithms,
+)
 from app.quantum.engine import (
     MAX_OPERATIONS,
     MAX_QUBITS,
@@ -257,6 +261,40 @@ def bell_circuit():
         "circuit": circuit.draw(output="text").single_string(),
         "resources": analyze_circuit(circuit),
     }
+
+
+# --------------------------------------------------
+# Algorithm Marketplace
+# --------------------------------------------------
+
+
+@app.get(
+    "/algorithms",
+    summary="List quantum algorithms",
+    description=(
+        "Returns pre-verified quantum algorithm templates "
+        "with metadata and resource guidance."
+    ),
+)
+def get_algorithms():
+    return {"algorithms": list_algorithms()}
+
+
+@app.get(
+    "/algorithms/{algorithm_id}",
+    summary="Get quantum algorithm circuit",
+    description=(
+        "Returns full circuit definition and parameters for the requested algorithm."
+    ),
+)
+def get_algorithm_by_id(algorithm_id: str):
+    algo = get_algorithm(algorithm_id)
+    if not algo:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Algorithm '{algorithm_id}' not found in catalog.",
+        )
+    return algo
 
 
 @app.post(

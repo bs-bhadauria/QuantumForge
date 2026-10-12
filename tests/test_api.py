@@ -376,3 +376,31 @@ def test_docs_page_is_available():
     response = client.get("/docs")
     assert response.status_code == 200
     assert "swagger" in response.text.lower()
+
+
+def test_list_algorithms_endpoint():
+    response = client.get("/algorithms")
+    assert response.status_code == 200
+    data = response.json()
+    assert "algorithms" in data
+    assert len(data["algorithms"]) >= 5
+    ids = [a["id"] for a in data["algorithms"]]
+    assert "bell" in ids
+    assert "teleportation" in ids
+    assert "grover_2q" in ids
+    assert "vqe_h2" in ids
+    assert "qaoa_maxcut" in ids
+
+
+def test_get_algorithm_by_id_endpoint():
+    response = client.get("/algorithms/grover_2q")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == "grover_2q"
+    assert data["n_qubits"] == 2
+    assert len(data["operations"]) > 0
+
+    # 404 for unknown algorithm
+    resp_404 = client.get("/algorithms/unknown_algorithm_xyz")
+    assert resp_404.status_code == 404
+    assert "not found" in resp_404.json()["detail"].lower()
