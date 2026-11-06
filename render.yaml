@@ -12,3 +12,6 @@ services:
         value: 15.0
       - key: QUANTUMFORGE_MAX_PAYLOAD_BYTES
         value: 1048576
+      - key: DATABASE_URL
+        sync: false
+

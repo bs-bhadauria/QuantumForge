@@ -4,7 +4,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
+import pg from 'pg';
 
+const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -14,44 +16,128 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
-// Initialize SQLite database
-const dbPath = path.join(__dirname, '..', 'quantumforge.db');
-const db = new DatabaseSync(dbPath);
+// Database Initialization: Neon PostgreSQL if DATABASE_URL is provided, else Native SQLite
+const isPg = Boolean(process.env.DATABASE_URL);
+let pgPool = null;
+let sqliteDb = null;
 
-// Create tables
-db.exec(`
-  CREATE TABLE IF NOT EXISTS circuits (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    n_qubits INTEGER NOT NULL,
-    operations_json TEXT NOT NULL,
-    created_at TEXT NOT NULL
-  );
+if (isPg) {
+  console.log('[QuantumForge Backend] Initializing Neon PostgreSQL pool...');
+  pgPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
 
-  CREATE TABLE IF NOT EXISTS simulations (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    qubits INTEGER NOT NULL,
-    shots INTEGER NOT NULL,
-    seed INTEGER NOT NULL,
-    depth INTEGER,
-    fidelity TEXT,
-    runtime_ms REAL,
-    counts_json TEXT,
-    created_at TEXT NOT NULL
-  );
+  pgPool
+    .query(
+      `
+    CREATE TABLE IF NOT EXISTS circuits (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      n_qubits INTEGER NOT NULL,
+      operations_json TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
 
-  CREATE TABLE IF NOT EXISTS algorithms (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    category TEXT NOT NULL,
-    description TEXT,
-    n_qubits INTEGER NOT NULL,
-    operations_json TEXT NOT NULL,
-    math TEXT,
-    created_at TEXT NOT NULL
-  );
-`);
+    CREATE TABLE IF NOT EXISTS simulations (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      qubits INTEGER NOT NULL,
+      shots INTEGER NOT NULL,
+      seed INTEGER NOT NULL,
+      depth INTEGER,
+      fidelity TEXT,
+      runtime_ms REAL,
+      counts_json TEXT,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS algorithms (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      category TEXT NOT NULL,
+      description TEXT,
+      n_qubits INTEGER NOT NULL,
+      operations_json TEXT NOT NULL,
+      math TEXT,
+      created_at TEXT NOT NULL
+    );
+  `
+    )
+    .then(() => console.log('[QuantumForge Backend] Neon PostgreSQL schema synced successfully'))
+    .catch((err) => console.error('[QuantumForge Backend] Neon PostgreSQL schema error:', err));
+} else {
+  const dbPath = path.join(__dirname, '..', 'quantumforge.db');
+  sqliteDb = new DatabaseSync(dbPath);
+  sqliteDb.exec(`
+    CREATE TABLE IF NOT EXISTS circuits (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      n_qubits INTEGER NOT NULL,
+      operations_json TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS simulations (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      qubits INTEGER NOT NULL,
+      shots INTEGER NOT NULL,
+      seed INTEGER NOT NULL,
+      depth INTEGER,
+      fidelity TEXT,
+      runtime_ms REAL,
+      counts_json TEXT,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS algorithms (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      category TEXT NOT NULL,
+      description TEXT,
+      n_qubits INTEGER NOT NULL,
+      operations_json TEXT NOT NULL,
+      math TEXT,
+      created_at TEXT NOT NULL
+    );
+  `);
+  console.log(`[QuantumForge Backend] Local SQLite database initialized at ${dbPath}`);
+}
+
+async function dbAll(sql, params = []) {
+  if (isPg) {
+    let idx = 1;
+    const pgSql = sql.replace(/\?/g, () => `$${idx++}`);
+    const res = await pgPool.query(pgSql, params);
+    return res.rows;
+  } else {
+    const stmt = sqliteDb.prepare(sql);
+    return stmt.all(...params);
+  }
+}
+
+async function dbRun(sql, params = []) {
+  if (isPg) {
+    let idx = 1;
+    let pgSql = sql.replace(/\?/g, () => `$${idx++}`);
+    if (pgSql.includes('INSERT OR REPLACE INTO circuits')) {
+      pgSql = `
+        INSERT INTO circuits (id, name, n_qubits, operations_json, created_at)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          n_qubits = EXCLUDED.n_qubits,
+          operations_json = EXCLUDED.operations_json,
+          created_at = EXCLUDED.created_at
+      `;
+    }
+    return await pgPool.query(pgSql, params);
+  } else {
+    const stmt = sqliteDb.prepare(sql);
+    return stmt.run(...params);
+  }
+}
 
 // Complex numbers helper for exact server simulation
 const C = {
@@ -203,8 +289,8 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'QuantumForge Studio Platform Engine',
-    engine: 'Qiskit Aer / Node.js 22 Native SQLite',
-    database: 'SQLite 3 (Synchronous)',
+    engine: 'Qiskit Aer / Node.js 22 Runtime',
+    database: isPg ? 'Neon PostgreSQL (Cloud Serverless)' : 'SQLite 3 (Local Synchronous)',
     timestamp: new Date().toISOString(),
   });
 });
@@ -220,10 +306,9 @@ app.post('/api/simulate', (req, res) => {
 });
 
 // Circuits CRUD
-app.get('/api/circuits', (req, res) => {
+app.get('/api/circuits', async (req, res) => {
   try {
-    const stmt = db.prepare('SELECT * FROM circuits ORDER BY created_at DESC');
-    const rows = stmt.all();
+    const rows = await dbAll('SELECT * FROM circuits ORDER BY created_at DESC');
     const circuits = rows.map((r) => ({
       id: r.id,
       name: r.name,
@@ -237,25 +322,26 @@ app.get('/api/circuits', (req, res) => {
   }
 });
 
-app.post('/api/circuits', (req, res) => {
+app.post('/api/circuits', async (req, res) => {
   try {
     const { id = Date.now().toString(), name = 'Untitled Circuit', n_qubits = 2, operations = [] } = req.body;
-    const stmt = db.prepare(`
+    const now = new Date().toISOString();
+    await dbRun(
+      `
       INSERT OR REPLACE INTO circuits (id, name, n_qubits, operations_json, created_at)
       VALUES (?, ?, ?, ?, ?)
-    `);
-    const now = new Date().toISOString();
-    stmt.run(id, name, n_qubits, JSON.stringify(operations), now);
+    `,
+      [id, name, n_qubits, JSON.stringify(operations), now]
+    );
     res.json({ id, name, n_qubits, operations, created_at: now });
   } catch (err) {
     res.status(400).json({ detail: err.message });
   }
 });
 
-app.delete('/api/circuits/:id', (req, res) => {
+app.delete('/api/circuits/:id', async (req, res) => {
   try {
-    const stmt = db.prepare('DELETE FROM circuits WHERE id = ?');
-    stmt.run(req.params.id);
+    await dbRun('DELETE FROM circuits WHERE id = ?', [req.params.id]);
     res.json({ success: true, deleted: req.params.id });
   } catch (err) {
     res.status(500).json({ detail: err.message });
@@ -263,10 +349,9 @@ app.delete('/api/circuits/:id', (req, res) => {
 });
 
 // History Endpoints
-app.get('/api/history', (req, res) => {
+app.get('/api/history', async (req, res) => {
   try {
-    const stmt = db.prepare('SELECT * FROM simulations ORDER BY created_at DESC LIMIT 50');
-    const rows = stmt.all();
+    const rows = await dbAll('SELECT * FROM simulations ORDER BY created_at DESC LIMIT 50');
     const history = rows.map((r) => ({
       id: r.id,
       name: r.name,
@@ -285,7 +370,7 @@ app.get('/api/history', (req, res) => {
   }
 });
 
-app.post('/api/history', (req, res) => {
+app.post('/api/history', async (req, res) => {
   try {
     const {
       id = Date.now().toString(),
@@ -298,11 +383,13 @@ app.post('/api/history', (req, res) => {
       runtimeMs = 12,
       counts = {},
     } = req.body;
-    const stmt = db.prepare(`
+    await dbRun(
+      `
       INSERT INTO simulations (id, name, qubits, shots, seed, depth, fidelity, runtime_ms, counts_json, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    stmt.run(id, name, qubits, shots, seed, depth, fidelity, runtimeMs, JSON.stringify(counts), new Date().toISOString());
+    `,
+      [id, name, qubits, shots, seed, depth, fidelity, runtimeMs, JSON.stringify(counts), new Date().toISOString()]
+    );
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ detail: err.message });
@@ -323,5 +410,5 @@ if (fs.existsSync(distPath)) {
 
 app.listen(PORT, () => {
   console.log(`[QuantumForge Backend] Server listening on port ${PORT}`);
-  console.log(`[QuantumForge Backend] SQLite connected at ${dbPath}`);
+  console.log(`[QuantumForge Backend] Database mode: ${isPg ? 'Neon PostgreSQL' : 'Local SQLite'}`);
 });
