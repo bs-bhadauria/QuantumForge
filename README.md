@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-quantumforge-rho.vercel.app-00f2fe?style=for-the-badge&logo=vercel&logoColor=white)](https://quantumforge.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-quantumforge-rho.vercel.app-00f2fe?style=for-the-badge&logo=vercel&logoColor=white)](https://quantumforge-rho.vercel.app)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge)](LICENSE)
 [![React 19](https://img.shields.io/badge/React-19.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8.3.5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
