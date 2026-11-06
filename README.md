@@ -1,4 +1,4 @@
-# ⚛️ QuantumForge Studio Platform
+# QuantumForge Studio Platform
 
 <div align="center">
 
@@ -13,13 +13,13 @@
 **A modern, production-grade Quantum Circuit IDE, 3D Bloch Sphere Simulator, and Algorithm Marketplace.**  
 Engineered for quantum researchers, physicists, students, and software engineers exploring quantum computing.
 
-[Explore Live Studio](https://quantumforge.vercel.app) • [View Architecture](#architecture) • [Algorithm Marketplace](#algorithm-marketplace) • [Deployment](#deployment)
+[Explore Live Studio](https://quantumforge-rho.vercel.app) • [View Architecture](#architecture) • [Algorithm Marketplace](#algorithm-marketplace) • [Deployment](#deployment)
 
 </div>
 
 ---
 
-## 🌟 Overview
+## Overview
 
 **QuantumForge** bridges the gap between quantum mechanics and modern web engineering. Designed with an ultra-responsive, high-performance dark theme, it brings together drag-and-drop circuit composition, mathematical transparency, 3D statevector visualization, and cloud serverless persistence.
 
@@ -49,7 +49,7 @@ Engineered for quantum researchers, physicists, students, and software engineers
 
 ---
 
-## ✨ Key Platform Features
+## Key Platform Features
 
 ### 1. 🎛️ IBM Quantum Composer-Grade Circuit Canvas
 - **Two-Click Multi-Qubit Entangler Linking**: Select an entangler gate (`CX`, `CZ`, `CCX` / Toffoli), click a control slot on wire $q[i]$, then click a target slot on wire $q[j]$.
@@ -61,14 +61,14 @@ Engineered for quantum researchers, physicists, students, and software engineers
   - **Entanglers**: $CX$ (CNOT), $CZ$, $\text{SWAP}$, $CCX$ (Toffoli)
   - **Measurement & Sync**: Measurement ($\mathbf{M}$) and Barriers.
 
-### 2. 🌐 Real-Time 3D Bloch Sphere Vector Engine
+### 2. Real-Time 3D Bloch Sphere Vector Engine
 - Powered by **Three.js** with orbital drag controls and inertial rotation.
 - **Real-Time Statevector Tracking**: Computes spherical coordinates $(\theta, \phi)$ and the single-qubit pure statevector:
   $$\vert\psi\rangle = \cos(\theta / 2)\vert 0\rangle + e^{i\phi}\sin(\theta / 2)\vert 1\rangle$$
 - Displays active Bloch vector $(x, y, z)$, polar and azimuthal angles in radians/degrees, and amplitude breakdown.
 - Built-in `ResizeObserver` ensures seamless responsive resizing without canvas stretching or camera distortion.
 
-### 3. 📚 Comprehensive Algorithm Marketplace (18+ Presets)
+### 3. Comprehensive Algorithm Marketplace (18+ Presets)
 A catalog of pre-compiled quantum algorithms ready for immediate simulation, circuit inspection, and code export:
 - **Quantum Search & Optimization**: Grover’s Search (Quadratic Speedup), QAOA Max-Cut Graph Partitioning.
 - **Quantum Chemistry & Physics**: Variational Quantum Eigensolver (VQE Molecular $\text{H}_2$ Ground State Ansatz), Quantum Phase Estimation (QPE).
@@ -77,19 +77,19 @@ A catalog of pre-compiled quantum algorithms ready for immediate simulation, cir
 - **Oracle & Complexity Benchmarks**: Deutsch-Jozsa Constant/Balanced Oracle, Bernstein-Vazirani Secret Bitstring Finder.
 - Each algorithm card provides mathematical formulations, Clifford+T resource estimations, circuit depth, and one-click import into the active canvas.
 
-### 4. 🎨 Modern Cybernetic UI & Experience
+### 4. Modern Cybernetic UI & Experience
 - **Perspective Grid Matrix**: 3D tilted matrix plane with colorful cursor light-trails that fade organically over 1.4 seconds.
 - **Mega-Menu Navigation**: Glassmorphic header with categorized flyout menus, system status monitors, and one-click theme toggling.
 - **Hidable & Resizable Responsive Sidebar**: Drag-to-resize sidebar with automatic hamburger menu transformation at narrow viewports to maximize circuit canvas workspace.
 
-### 5. ☁️ Dual-Driver Cloud Persistence & Execution
+### 5. Dual-Driver Cloud Persistence & Execution
 - **Neon Serverless PostgreSQL Adapter**: Connects via `pg.Pool` with SSL encryption when `DATABASE_URL` is set, auto-creating `circuits`, `simulations`, and `algorithms` tables.
 - **Zero-Config Local SQLite Fallback**: Uses Node.js native `DatabaseSync` for offline, local development with zero external setup.
 - **OpenQASM 3.0 & Python Export**: Export circuits directly into standardized OpenQASM 3.0 syntax or copy ready-to-run Qiskit Python scripts.
 
 ---
 
-## 🏗️ Technology Stack
+## Technology Stack
 
 | Layer | Technologies |
 |---|---|
@@ -103,7 +103,7 @@ A catalog of pre-compiled quantum algorithms ready for immediate simulation, cir
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 quantumforge/
@@ -136,7 +136,7 @@ quantumforge/
 
 ---
 
-## 🚀 Quickstart & Local Development
+## Quickstart & Local Development
 
 ### Prerequisites
 - **Node.js**: v20 or v22+
@@ -176,7 +176,7 @@ npm run preview
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 
 QuantumForge is tested across unit, integration, and browser end-to-end layers:
 
@@ -196,7 +196,7 @@ python -m pytest -q
 
 ---
 
-## 🌐 Cloud Deployment
+## Cloud Deployment
 
 ### Deploy to Vercel (Frontend)
 1. Import the repository on [Vercel](https://vercel.com/new).
@@ -216,7 +216,7 @@ python -m pytest -q
 
 ---
 
-## 📄 License
+## License
 
 This project is open-source software licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.  
 See the [LICENSE](LICENSE) file for complete details.
@@ -224,5 +224,5 @@ See the [LICENSE](LICENSE) file for complete details.
 ---
 
 <div align="center">
-Built with ⚛️ for the Quantum Computing & Open Source Community.
+Built with for the Quantum Computing & Open Source Community.
 </div>
