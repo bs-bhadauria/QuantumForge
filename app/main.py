@@ -7,6 +7,7 @@ from pathlib import Path
 import anyio
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app.quantum.algorithms import (
@@ -46,6 +47,9 @@ app = FastAPI(
 )
 
 DASHBOARD_FILE = Path(__file__).resolve().parent / "static" / "index.html"
+STATIC_ASSETS_DIR = Path(__file__).resolve().parent / "static" / "assets"
+if STATIC_ASSETS_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=STATIC_ASSETS_DIR), name="assets")
 
 
 # --------------------------------------------------
@@ -156,10 +160,10 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data:;"
+        "default-src 'self' 'unsafe-inline' https: data:; "
+        "script-src 'self' 'unsafe-inline' https:; "
+        "style-src 'self' 'unsafe-inline' https:; "
+        "img-src 'self' data: https:;"
     )
     return response
 

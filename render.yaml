@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: quantumforge
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: QUANTUMFORGE_TIMEOUT_SECONDS
+        value: 15.0
+      - key: QUANTUMFORGE_MAX_PAYLOAD_BYTES
+        value: 1048576

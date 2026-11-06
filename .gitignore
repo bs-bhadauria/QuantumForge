@@ -19,10 +19,20 @@ env/
 # IDE and operating system
 .vscode/
 .idea/
+.cursor/
 .DS_Store
 
-# Local backups
-*.backup-*
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Build & Dependencies
 node_modules/
+dist/
 playwright-report/
 test-results/
+
+# Local backups & scratch
+*.backup-*
+scratch_*
