@@ -202,7 +202,7 @@ python -m pytest -q
 1. Import the repository on [Vercel](https://vercel.com/new).
 2. Set **Project Name** to `quantumforge`.
 3. Vercel automatically detects `vercel.json` and runs `npm run build`.
-4. Your application is live at `https://quantumforge.vercel.app`.
+4. Your application is live at `https://quantumforge-rho.vercel.app`.
 
 ### Deploy to Neon (Serverless Database)
 1. Create a free project on [neon.tech](https://neon.tech).
