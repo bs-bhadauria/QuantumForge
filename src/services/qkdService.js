@@ -344,3 +344,4 @@ export function generateQkdAuditLog(qkdResult) {
     2
   );
 }
+
