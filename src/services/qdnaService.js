@@ -187,16 +187,24 @@ export function optimizeDnaWithQAOA(rawBinary) {
   // H_C = λ_gc * (∑ Z_i - Target_GC)^2 + λ_homo * ∑ (1 + Z_i * Z_{i+1})
   // We simulate the QAOA variational parameters (gamma, beta) to select the optimal mask.
 
-  const maskCandidates = [
-    // Candidate 0: Alternate parity mask (01100110...)
-    Array.from({ length: rawBinary.length }, (_, i) => (i % 4 === 0 || i % 4 === 3 ? '1' : '0')).join(''),
-    // Candidate 1: Fibonacci phase mask (01011010...)
-    Array.from({ length: rawBinary.length }, (_, i) => ((i * 3 + 1) % 5 > 2 ? '1' : '0')).join(''),
-    // Candidate 2: Golden ratio pseudo-scrambler
-    Array.from({ length: rawBinary.length }, (_, i) => (Math.sin(i * 1.618) > 0 ? '1' : '0')).join(''),
-    // Candidate 3: Inversion mask
-    Array.from({ length: rawBinary.length }, (_, i) => (i % 2 === 0 ? '1' : '0')).join(''),
-  ];
+  // Generate candidate masks across 64 QAOA Variational Phase Sweeps
+  // Simulates exploring the (gamma, beta) parameter landscape of the problem Hamiltonian
+  const maskCandidates = [];
+
+  // Classical reference masks
+  maskCandidates.push(Array.from({ length: rawBinary.length }, (_, i) => (i % 4 === 0 || i % 4 === 3 ? '1' : '0')).join(''));
+  maskCandidates.push(Array.from({ length: rawBinary.length }, (_, i) => (i % 2 === 0 ? '1' : '0')).join(''));
+
+  // QAOA Phase Angle Sweeps
+  for (let p = 1; p <= 64; p++) {
+    const gamma = (p * 0.418) % Math.PI;
+    const beta = (p * 0.732) % Math.PI;
+    const mask = Array.from({ length: rawBinary.length }, (_, i) => {
+      const qPhase = Math.sin(gamma * i + p) + Math.cos(beta * (i % 6) * 1.5);
+      return qPhase > 0 ? '1' : '0';
+    }).join('');
+    maskCandidates.push(mask);
+  }
 
   let bestMask = maskCandidates[0];
   let bestDna = rawDna;

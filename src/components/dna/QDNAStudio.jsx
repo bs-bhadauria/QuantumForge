@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function QDNAStudio() {
-  const { setOperations, setNQubits, setActiveView, setCircuitName } = useQuantum();
+  const { loadAlgorithm } = useQuantum();
 
   const [inputPayload, setInputPayload] = useState('QuantumForge 2026: Quantum-Optimized DNA Storage');
   const [copied, setCopied] = useState(false);
@@ -78,10 +78,12 @@ export default function QDNAStudio() {
   const handleLoadCircuitInComposer = () => {
     if (!optimizationResult) return;
     const { qaoaCircuit } = optimizationResult;
-    setNQubits(qaoaCircuit.n_qubits);
-    setOperations(qaoaCircuit.operations);
-    setCircuitName("QAOA DNA Constraint Optimizer");
-    setActiveView('composer');
+    loadAlgorithm({
+      title: "Q-DNA QAOA Constraint Optimizer",
+      n_qubits: qaoaCircuit.n_qubits,
+      recommendedShots: 4096,
+      operations: qaoaCircuit.operations,
+    });
   };
 
   return (

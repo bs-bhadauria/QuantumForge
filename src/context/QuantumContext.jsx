@@ -247,6 +247,7 @@ export function QuantumProvider({ children }) {
         seed,
         setSeed,
         operations,
+        setOperations,
         addGate,
         removeGate,
         updateEntanglerTarget,
