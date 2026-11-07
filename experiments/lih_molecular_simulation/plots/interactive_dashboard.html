@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantumForge | LiH Molecular Simulation Visualizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #070a11; color: #f8fafc; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="p-6 md:p-12">
+  <div class="max-w-6xl mx-auto space-y-10">
+    
+    <!-- Header -->
+    <header class="border-b border-slate-800 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950 border border-cyan-800 text-cyan-400 text-xs font-semibold mb-2">
+          <span>●</span> Verified VQE Experiment Run
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">Lithium Hydride (LiH) Molecular Quantum Simulation</h1>
+        <p class="text-slate-400 text-sm mt-1">Ground State Energy & Potential Energy Surface on QuantumForge Studio</p>
+      </div>
+      <div class="text-right">
+        <span class="mono text-emerald-400 text-xl font-bold">-8.203447 Ha</span>
+        <p class="text-xs text-slate-500">Equilibrium VQE Ground State Energy</p>
+      </div>
+    </header>
+
+    <!-- Key Metrics Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+        <p class="text-xs text-slate-400">Bond Length (R_eq)</p>
+        <p class="text-xl font-bold text-cyan-400 mono mt-1">1.595 Å</p>
+        <p class="text-[10px] text-slate-500">3.0141 Bohr</p>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+        <p class="text-xs text-slate-400">Optimal θ*</p>
+        <p class="text-xl font-bold text-amber-400 mono mt-1">0.2260 rad</p>
+        <p class="text-[10px] text-slate-500">12.95° Rotation</p>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+        <p class="text-xs text-slate-400">Correlation Energy</p>
+        <p class="text-xl font-bold text-emerald-400 mono mt-1">12.90 kcal/mol</p>
+        <p class="text-[10px] text-slate-500">0.020565 Hartree</p>
+      </div>
+      <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+        <p class="text-xs text-slate-400">Simulation Fidelity</p>
+        <p class="text-xl font-bold text-purple-400 mono mt-1">99.94%</p>
+        <p class="text-[10px] text-slate-500">4,096 Shots (Deterministic)</p>
+      </div>
+    </div>
+
+    <!-- Plots Grid -->
+    <div class="space-y-8">
+      
+      <!-- Plot 1: PES Curve -->
+      <section class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-slate-100">1. Potential Energy Surface & Dissociation Curve</h2>
+          <span class="text-xs text-slate-400 mono">E(R) vs Internuclear Distance</span>
+        </div>
+        <div class="overflow-x-auto">
+          <img src="pes_dissociation_curve.svg" alt="Potential Energy Surface" class="w-full h-auto rounded-lg">
+        </div>
+        <p class="text-xs text-slate-400 mt-4 leading-relaxed">
+          The shaded emerald region represents the electronic correlation energy captured by the VQE ansatz over classical Hartree-Fock. The global energy minimum at <strong>R = 1.595 Å</strong> matches the experimental bond length of Lithium Hydride.
+        </p>
+      </section>
+
+      <!-- Plot 2: Circuit Architecture -->
+      <section class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-slate-100">2. Quantum Circuit Architecture & Entangling Layer</h2>
+          <span class="text-xs text-slate-400 mono">4 Qubits · Depth 5 · 12 Gates</span>
+        </div>
+        <div class="overflow-x-auto">
+          <img src="lih_vqe_circuit.svg" alt="Quantum Circuit Diagram" class="w-full h-auto rounded-lg">
+        </div>
+        <p class="text-xs text-slate-400 mt-4 leading-relaxed">
+          The circuit initializes the Hartree-Fock ground configuration <code>|0011⟩</code> and applies a double-excitation pair hopping unitary via CNOT ladders and variational <code>Ry(0.2260)</code> rotations.
+        </p>
+      </section>
+
+      <!-- Plot 3: Histogram -->
+      <section class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-slate-100">3. Measurement Basis State Probabilities</h2>
+          <span class="text-xs text-slate-400 mono">4,096 Aer-Matrix Shots</span>
+        </div>
+        <div class="overflow-x-auto">
+          <img src="measurement_histogram.svg" alt="Measurement Histogram" class="w-full h-auto rounded-lg">
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
+      QuantumForge Studio Platform · Open Source Quantum Computing IDE · 2026
+    </footer>
+
+  </div>
+</body>
+</html>

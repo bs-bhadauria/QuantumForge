@@ -74,6 +74,10 @@ The circuit is composed of three functional blocks:
 2. **Entangling Unitary (Pair Hopping):** $CX(0,2)$ and $CX(1,3)$ gates coupled with variational $R_y(\theta^*)$ rotations implement double electron excitations $(0,1) \leftrightarrow (2,3)$.
 3. **Synthesis & Readout:** Inverse CNOT network maps amplitudes back to computational measurement basis.
 
+### Circuit Schematic
+
+![LiH VQE Circuit Diagram](./plots/lih_vqe_circuit.svg)
+
 ```
        Step 0           Step 1           Step 2           Step 3           Step 4
 q[0]: ──[ X ]─────────────●────────────[ Ry(0.226) ]───────●──────────────[ M ]───
@@ -125,6 +129,8 @@ c[3] = measure q[3];
 
 ### Measured Basis State Distributions
 
+![Measurement Histogram](./plots/measurement_histogram.svg)
+
 | Basis State | Physical Configuration | Shots | Empirical Probability | Theoretical Probability |
 |:---:|:---|:---:|:---:|:---:|
 | **$|0011\rangle$** | Ground Configuration ($\sigma^2$) | **3,982** | **$97.22\%$** | **$97.47\%$** |
@@ -144,6 +150,8 @@ c[3] = measure q[3];
 ---
 
 ## 6. Potential Energy Surface & Bond Dissociation Curve
+
+![Potential Energy Surface (PES)](./plots/pes_dissociation_curve.svg)
 
 The table and chart below illustrate the molecular energy as a function of the internuclear distance $R$:
 
@@ -202,3 +210,4 @@ All experiment files are stored in `experiments/lih_molecular_simulation/`:
 - `data/simulation_results.json`: 4,096 shot measurement histogram and telemetry.
 - `scripts/run_lih_experiment.js`: Standalone script to reproduce the optimization.
 - `scripts/simulate_on_quantumforge.js`: Runs the circuit through the QuantumForge Matrix Engine.
+
