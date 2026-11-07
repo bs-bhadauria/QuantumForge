@@ -8,6 +8,7 @@ import SimulationBenchmarks from './components/benchmarks/SimulationBenchmarks';
 import DocsHub from './components/docs/DocsHub';
 import CircuitHistory from './components/history/CircuitHistory';
 import LandingPage from './components/landing/LandingPage';
+import QDNAStudio from './components/dna/QDNAStudio';
 import { RefreshCw } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
@@ -75,8 +76,9 @@ function AppContent() {
           {activeView === 'benchmarks' && <SimulationBenchmarks />}
           {activeView === 'docs' && <DocsHub />}
           {activeView === 'history' && <CircuitHistory />}
+          {activeView === 'dna' && <QDNAStudio />}
           {/* Fallback to CircuitComposer if activeView is not recognized */}
-          {!['composer', 'marketplace', 'benchmarks', 'docs', 'history'].includes(activeView) && (
+          {!['composer', 'marketplace', 'benchmarks', 'docs', 'history', 'dna'].includes(activeView) && (
             <CircuitComposer />
           )}
         </main>

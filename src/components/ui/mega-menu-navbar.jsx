@@ -23,7 +23,8 @@ import {
   Compass,
   CheckCircle2,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Dna,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { AnimatedButton } from "./AnimatedButton";
@@ -36,6 +37,14 @@ export const DEFAULT_QUANTUM_FEATURES = [
     href: "#simulator",
     icon: Layers,
     badge: "Interactive",
+    badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
+  },
+  {
+    title: "Q-DNA Storage Studio",
+    description: "Quantum-optimized biological data encoding with 50% GC balance and homopolymer suppression.",
+    href: "#dna",
+    icon: Dna,
+    badge: "New",
     badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
   },
   {

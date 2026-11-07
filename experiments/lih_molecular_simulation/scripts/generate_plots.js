@@ -435,3 +435,4 @@ generateHistogramSvg();
 generateCircuitDiagramSvg();
 generateInteractiveHtmlDashboard();
 console.log('\nAll SVG plots and interactive dashboard saved into experiments/lih_molecular_simulation/plots/\n');
+
