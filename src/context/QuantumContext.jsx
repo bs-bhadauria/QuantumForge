@@ -13,7 +13,7 @@ export function QuantumProvider({ children }) {
   const getViewFromHash = () => {
     if (typeof window === 'undefined') return 'landing';
     const hash = window.location.hash.replace(/^#\/?/, '').trim();
-    const validViews = ['landing', 'composer', 'marketplace', 'dna', 'benchmarks', 'docs', 'history'];
+    const validViews = ['landing', 'composer', 'marketplace', 'dna', 'qkd', 'benchmarks', 'docs', 'history'];
     return validViews.includes(hash) ? hash : 'landing';
   };
 

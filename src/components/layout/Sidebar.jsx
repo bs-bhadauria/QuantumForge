@@ -11,6 +11,7 @@ import {
   Compass,
   ChevronLeft,
   Dna,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -56,7 +57,8 @@ export default function Sidebar() {
     { id: 'landing', label: 'Platform Showcase', icon: Compass, badge: 'Home' },
     { id: 'composer', label: 'Circuit Composer', icon: Cpu, badge: 'Live' },
     { id: 'marketplace', label: 'Algorithm Marketplace', icon: ShoppingBag, count: '18' },
-    { id: 'dna', label: 'Q-DNA Storage Studio', icon: Dna, badge: 'New' },
+    { id: 'dna', label: 'Q-DNA Storage Studio', icon: Dna, badge: 'Biotech' },
+    { id: 'qkd', label: 'QKD BB84 Cyber-Defense', icon: ShieldCheck, badge: 'New' },
     { id: 'benchmarks', label: 'Simulation Benchmarks', icon: Activity },
     { id: 'docs', label: 'Docs & Architecture Specs', icon: BookOpen },
     { id: 'history', label: 'Database & Saved Runs', icon: Database },

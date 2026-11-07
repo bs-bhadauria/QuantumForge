@@ -22,6 +22,7 @@ import {
   Edit2,
   Dna,
   ArrowLeft,
+  Radio,
 } from 'lucide-react';
 
 export default function CircuitComposer() {
@@ -76,6 +77,25 @@ export default function CircuitComposer() {
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Q-DNA Studio (State Preserved)</span>
+          </button>
+        </div>
+      )}
+
+      {/* QKD Origin Banner if inspecting from QKD BB84 Studio */}
+      {(previousView === 'qkd' || circuitName?.includes('BB84')) && (
+        <div className="bg-gradient-to-r from-purple-950/60 via-slate-900/80 to-purple-950/60 border-b border-purple-500/30 px-4 sm:px-6 py-2 flex items-center justify-between text-xs text-purple-300">
+          <div className="flex items-center gap-2">
+            <Radio className="w-4 h-4 text-purple-400 animate-pulse" />
+            <span>
+              Inspecting Transmission Circuit for <strong>QKD BB84 Cyber-Defense Simulator</strong>
+            </span>
+          </div>
+          <button
+            onClick={() => setActiveView('qkd')}
+            className="px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 text-purple-200 font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to QKD Studio (State Preserved)</span>
           </button>
         </div>
       )}

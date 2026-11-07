@@ -46,8 +46,17 @@ export const DEFAULT_QUANTUM_FEATURES = [
     href: "#dna",
     view: "dna",
     icon: Dna,
-    badge: "New",
+    badge: "Biotech",
     badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
+  },
+  {
+    title: "QKD BB84 Cyber-Defense",
+    description: "Quantum key distribution & eavesdropper detection simulator with Shor-Preskill bound.",
+    href: "#qkd",
+    view: "qkd",
+    icon: ShieldCheck,
+    badge: "New",
+    badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
   },
   {
     title: "Qiskit Aer Execution Engine",
