@@ -1,0 +1,25 @@
+{
+  "molecule": "Lithium Hydride (LiH)",
+  "basis_set": "STO-3G",
+  "equilibrium_distance_angstrom": 1.595,
+  "equilibrium_distance_bohr": 3.0141131687951908,
+  "nuclear_repulsion_hartree": 0.9953176380564264,
+  "hartree_fock_energy_hartree": -8.182882361943573,
+  "vqe_ground_state_energy_hartree": -8.203447411893167,
+  "correlation_energy_hartree": 0.020565049949594183,
+  "correlation_energy_kcal_per_mol": 12.904753928819897,
+  "optimal_theta_radians": 0.22602005905002884,
+  "optimal_theta_degrees": 12.949995468864298,
+  "hamiltonian_pauli_coefficients": {
+    "g0": -7.498882361943574,
+    "g1": 0.1712,
+    "g2": 0.1712,
+    "g3": -0.2228,
+    "g4": -0.2228,
+    "g5": 0.1686,
+    "g6": 0.1764,
+    "g7": 0.1205,
+    "g8": 0.1205,
+    "g9": 0.0453
+  }
+}

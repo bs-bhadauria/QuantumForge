@@ -1,0 +1,86 @@
+{
+  "id": "exp-vqe-lih-ground-state",
+  "name": "LiH Molecular VQE Ground State (STO-3G Active Space)",
+  "n_qubits": 4,
+  "operations": [
+    {
+      "id": "op_0",
+      "gate": "X",
+      "qubit": 0,
+      "step": 0
+    },
+    {
+      "id": "op_1",
+      "gate": "X",
+      "qubit": 1,
+      "step": 0
+    },
+    {
+      "id": "op_2",
+      "gate": "CX",
+      "controlQubit": 0,
+      "targetQubit": 2,
+      "step": 1
+    },
+    {
+      "id": "op_3",
+      "gate": "CX",
+      "controlQubit": 1,
+      "targetQubit": 3,
+      "step": 1
+    },
+    {
+      "id": "op_4",
+      "gate": "RY",
+      "qubit": 0,
+      "param": 0.226,
+      "step": 2
+    },
+    {
+      "id": "op_5",
+      "gate": "RY",
+      "qubit": 1,
+      "param": 0.226,
+      "step": 2
+    },
+    {
+      "id": "op_6",
+      "gate": "CX",
+      "controlQubit": 0,
+      "targetQubit": 2,
+      "step": 3
+    },
+    {
+      "id": "op_7",
+      "gate": "CX",
+      "controlQubit": 1,
+      "targetQubit": 3,
+      "step": 3
+    },
+    {
+      "id": "op_8",
+      "gate": "M",
+      "qubit": 0,
+      "step": 4
+    },
+    {
+      "id": "op_9",
+      "gate": "M",
+      "qubit": 1,
+      "step": 4
+    },
+    {
+      "id": "op_10",
+      "gate": "M",
+      "qubit": 2,
+      "step": 4
+    },
+    {
+      "id": "op_11",
+      "gate": "M",
+      "qubit": 3,
+      "step": 4
+    }
+  ],
+  "created_at": "2026-11-07T09:10:43.412Z"
+}

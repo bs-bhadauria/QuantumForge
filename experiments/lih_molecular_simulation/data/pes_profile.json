@@ -1,0 +1,90 @@
+[
+  {
+    "R_angstrom": 0.8,
+    "R_bohr": 1.5118,
+    "E_hf": -7.237192,
+    "E_vqe": -7.242121,
+    "optimalTheta": 0.1027,
+    "correlationKcalPerMol": 3.09
+  },
+  {
+    "R_angstrom": 1,
+    "R_bohr": 1.8897,
+    "E_hf": -7.637435,
+    "E_vqe": -7.644487,
+    "optimalTheta": 0.1251,
+    "correlationKcalPerMol": 4.42
+  },
+  {
+    "R_angstrom": 1.2,
+    "R_bohr": 2.2677,
+    "E_hf": -7.895784,
+    "E_vqe": -7.905882,
+    "optimalTheta": 0.1526,
+    "correlationKcalPerMol": 6.34
+  },
+  {
+    "R_angstrom": 1.4,
+    "R_bohr": 2.6456,
+    "E_hf": -8.068936,
+    "E_vqe": -8.083408,
+    "optimalTheta": 0.1862,
+    "correlationKcalPerMol": 9.08
+  },
+  {
+    "R_angstrom": 1.595,
+    "R_bohr": 3.0141,
+    "E_hf": -8.182882,
+    "E_vqe": -8.203447,
+    "optimalTheta": 0.226,
+    "correlationKcalPerMol": 12.9
+  },
+  {
+    "R_angstrom": 1.8,
+    "R_bohr": 3.4015,
+    "E_hf": -8.260445,
+    "E_vqe": -8.276028,
+    "optimalTheta": 0.202,
+    "correlationKcalPerMol": 9.78
+  },
+  {
+    "R_angstrom": 2,
+    "R_bohr": 3.7795,
+    "E_hf": -8.304001,
+    "E_vqe": -8.315911,
+    "optimalTheta": 0.1813,
+    "correlationKcalPerMol": 7.47
+  },
+  {
+    "R_angstrom": 2.4,
+    "R_bohr": 4.5353,
+    "E_hf": -8.318215,
+    "E_vqe": -8.325218,
+    "optimalTheta": 0.1469,
+    "correlationKcalPerMol": 4.39
+  },
+  {
+    "R_angstrom": 2.8,
+    "R_bohr": 5.2912,
+    "E_hf": -8.256231,
+    "E_vqe": -8.260397,
+    "optimalTheta": 0.1204,
+    "correlationKcalPerMol": 2.61
+  },
+  {
+    "R_angstrom": 3.2,
+    "R_bohr": 6.0471,
+    "E_hf": -8.132223,
+    "E_vqe": -8.13474,
+    "optimalTheta": 0.1002,
+    "correlationKcalPerMol": 1.58
+  },
+  {
+    "R_angstrom": 3.8,
+    "R_bohr": 7.181,
+    "E_hf": -7.846236,
+    "E_vqe": -7.847466,
+    "optimalTheta": 0.0792,
+    "correlationKcalPerMol": 0.77
+  }
+]
