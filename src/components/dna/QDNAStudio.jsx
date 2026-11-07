@@ -397,7 +397,7 @@ export default function QDNAStudio() {
         <p className="leading-relaxed">
           Synthetic biology machines synthesize DNA base-by-base using phosphoramidite chemical cycles. High GC variance or 
           repeated nucleotides (e.g. <code>AAAA</code>) cause secondary folding and enzyme detachment. QuantumForge maps 
-          the biological constraints to a <strong>Cost Hamiltonian</strong> $H_C = \sum J_{ij} Z_i Z_j + \sum h_i Z_i$. 
+          the biological constraints to a <strong>Cost Hamiltonian</strong> <span className="font-mono text-cyan-300">H<sub>C</sub> = &Sigma; J<sub>ij</sub> Z<sub>i</sub>Z<sub>j</sub> + &Sigma; h<sub>i</sub>Z<sub>i</sub></span>. 
           The 4-qubit QAOA circuit searches through candidate phase masks to find the optimal scrambling vector that 
           satisfies all chemical criteria while preserving 100% reversible digital reconstruction.
         </p>
@@ -406,3 +406,4 @@ export default function QDNAStudio() {
     </div>
   );
 }
+

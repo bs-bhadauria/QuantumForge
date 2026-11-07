@@ -294,3 +294,4 @@ export function generateFasta(textPayload, optimizedDna, metrics) {
   }
   return lines.join('\n');
 }
+
