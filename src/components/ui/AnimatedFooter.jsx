@@ -105,8 +105,117 @@ export function AnimatedFooter({
   const rightCanvasRef = useRef(null);
   const leftWrapRef = useRef(null);
   const rightWrapRef = useRef(null);
+  const bouncingRef = useRef(null);
+
+  const [bounceColorIdx, setBounceColorIdx] = useState(0);
+
+  const BOUNCE_NEON_COLORS = [
+    { text: "#ffffff", glow: "rgba(0, 242, 254, 0.7)", border: "rgba(0, 242, 254, 0.4)" },
+    { text: "#ffffff", glow: "rgba(78, 222, 163, 0.7)", border: "rgba(78, 222, 163, 0.4)" },
+    { text: "#ffffff", glow: "rgba(168, 85, 247, 0.7)", border: "rgba(168, 85, 247, 0.4)" },
+    { text: "#ffffff", glow: "rgba(56, 189, 248, 0.7)", border: "rgba(56, 189, 248, 0.4)" },
+    { text: "#ffffff", glow: "rgba(251, 191, 36, 0.7)", border: "rgba(251, 191, 36, 0.4)" },
+  ];
 
   const [isDark, setIsDark] = useState(true);
+
+  // Floating & Bouncing Carrom Goti Physics Loop
+  useEffect(() => {
+    const root = rootRef.current;
+    const bouncer = bouncingRef.current;
+    if (!root || !bouncer) return;
+
+    let posX = 0;
+    let posY = 0;
+    let speed = 1.5;
+    // Initial organic diagonal angle
+    let angle = (Math.random() * 0.8 + 0.3) * (Math.random() > 0.5 ? 1 : -1);
+    let vx = Math.cos(angle) * speed;
+    let vy = Math.sin(angle) * speed;
+
+    let containerW = root.clientWidth || 800;
+    let containerH = root.clientHeight || 500;
+    let bouncerW = bouncer.offsetWidth || 400;
+    let bouncerH = bouncer.offsetHeight || 120;
+
+    // Center initial position
+    posX = Math.max(10, (containerW - bouncerW) / 2);
+    posY = Math.max(10, (containerH - bouncerH) / 2);
+
+    let animationId = null;
+
+    const onBounce = () => {
+      setBounceColorIdx((prev) => (prev + 1) % 5);
+    };
+
+    const updateBounds = () => {
+      if (!root || !bouncer) return;
+      containerW = root.clientWidth;
+      containerH = root.clientHeight;
+      bouncerW = bouncer.offsetWidth;
+      bouncerH = bouncer.offsetHeight;
+      const maxX = Math.max(0, containerW - bouncerW);
+      const maxY = Math.max(0, containerH - bouncerH);
+      posX = Math.min(Math.max(0, posX), maxX);
+      posY = Math.min(Math.max(0, posY), maxY);
+    };
+
+    window.addEventListener("resize", updateBounds);
+
+    const step = () => {
+      updateBounds();
+      const maxX = Math.max(0, containerW - bouncerW);
+      const maxY = Math.max(0, containerH - bouncerH);
+
+      posX += vx;
+      posY += vy;
+
+      let bounced = false;
+
+      // Collision with Left / Right walls
+      if (posX >= maxX) {
+        posX = maxX;
+        vx = -Math.abs(vx) + (Math.random() - 0.5) * 0.15;
+        bounced = true;
+      } else if (posX <= 0) {
+        posX = 0;
+        vx = Math.abs(vx) + (Math.random() - 0.5) * 0.15;
+        bounced = true;
+      }
+
+      // Collision with Top / Bottom walls
+      if (posY >= maxY) {
+        posY = maxY;
+        vy = -Math.abs(vy) + (Math.random() - 0.5) * 0.15;
+        bounced = true;
+      } else if (posY <= 0) {
+        posY = 0;
+        vy = Math.abs(vy) + (Math.random() - 0.5) * 0.15;
+        bounced = true;
+      }
+
+      if (bounced) {
+        // Normalize speed to maintain continuous smooth carrom gliding
+        const curSpeed = Math.sqrt(vx * vx + vy * vy) || 1.5;
+        vx = (vx / curSpeed) * 1.5;
+        vy = (vy / curSpeed) * 1.5;
+        onBounce();
+      }
+
+      if (bouncer) {
+        bouncer.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+      }
+
+      animationId = requestAnimationFrame(step);
+    };
+
+    animationId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", updateBounds);
+    };
+  }, []);
 
   useEffect(() => {
     const checkDark = () =>
@@ -362,12 +471,23 @@ export function AnimatedFooter({
         </div>
       </div>
 
-      {/* Giant Typography: "QuantumForge" */}
-      <div className="relative z-10 w-full flex flex-col items-center justify-center pb-2">
+      {/* Floating & Bouncing Carrom Goti Typography: "QuantumForge" */}
+      <div
+        ref={bouncingRef}
+        className="absolute top-0 left-0 z-10 will-change-transform select-none cursor-pointer"
+        style={{
+          transform: "translate3d(0px, 0px, 0)",
+        }}
+        onClick={() => setBounceColorIdx((prev) => (prev + 1) % 5)}
+        title="Interactive Bouncing QuantumForge Logo (Flick/Click to strike!)"
+      >
         {headingLines.map((line, i) => (
           <h2
             key={i}
-            className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-[7.5rem] font-black tracking-tight leading-none text-white text-center drop-shadow-[0_4px_24px_rgba(255,255,255,0.35)]"
+            className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-[7rem] font-black tracking-tight leading-none text-white text-center whitespace-nowrap transition-all duration-300 select-none px-3 py-1"
+            style={{
+              filter: `drop-shadow(0 0 35px ${BOUNCE_NEON_COLORS[bounceColorIdx].glow}) drop-shadow(0 4px 18px rgba(0,0,0,0.85))`,
+            }}
           >
             {Array.from(line).map((char, j) => (
               <span

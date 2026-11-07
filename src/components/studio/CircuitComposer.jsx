@@ -20,6 +20,8 @@ import {
   ZoomOut,
   Maximize,
   Edit2,
+  Dna,
+  ArrowLeft,
 } from 'lucide-react';
 
 export default function CircuitComposer() {
@@ -39,6 +41,8 @@ export default function CircuitComposer() {
     undo,
     redo,
     operations,
+    previousView,
+    setActiveView,
   } = useQuantum();
 
   const [selectedPaletteGate, setSelectedPaletteGate] = useState(null);
@@ -57,6 +61,25 @@ export default function CircuitComposer() {
 
   return (
     <div className="flex flex-col w-full text-slate-800 dark:text-slate-100 select-none min-h-[calc(100vh-4rem)]">
+      {/* Q-DNA Origin Banner if inspecting from Q-DNA Studio */}
+      {(previousView === 'dna' || circuitName?.includes('Q-DNA')) && (
+        <div className="bg-gradient-to-r from-cyan-950/60 via-slate-900/80 to-cyan-950/60 border-b border-cyan-500/30 px-4 sm:px-6 py-2 flex items-center justify-between text-xs text-cyan-300">
+          <div className="flex items-center gap-2">
+            <Dna className="w-4 h-4 text-cyan-400 animate-pulse" />
+            <span>
+              Inspecting QAOA Variational Circuit for <strong>Q-DNA Storage Studio</strong>
+            </span>
+          </div>
+          <button
+            onClick={() => setActiveView('dna')}
+            className="px-3 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-200 font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Q-DNA Studio (State Preserved)</span>
+          </button>
+        </div>
+      )}
+
       {/* Top Sub-header Control Bar (Fully Responsive) */}
       <section className="min-h-[48px] py-1.5 bg-white dark:bg-[#0B0E15] px-4 sm:px-6 flex flex-wrap items-center justify-between gap-y-2 gap-x-3 border-b border-slate-200 dark:border-slate-800 z-30 transition-colors shadow-2xs">
         {/* Title & Status */}

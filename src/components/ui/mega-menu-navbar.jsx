@@ -35,6 +35,7 @@ export const DEFAULT_QUANTUM_FEATURES = [
     title: "Circuit Composer",
     description: "Visual quantum drag-and-drop circuit canvas with real-time DAG transformation.",
     href: "#simulator",
+    view: "composer",
     icon: Layers,
     badge: "Interactive",
     badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
@@ -43,6 +44,7 @@ export const DEFAULT_QUANTUM_FEATURES = [
     title: "Q-DNA Storage Studio",
     description: "Quantum-optimized biological data encoding with 50% GC balance and homopolymer suppression.",
     href: "#dna",
+    view: "dna",
     icon: Dna,
     badge: "New",
     badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
@@ -51,6 +53,7 @@ export const DEFAULT_QUANTUM_FEATURES = [
     title: "Qiskit Aer Execution Engine",
     description: "Ultra-fast local C++ statevector simulation engine with zero cloud queue wait times.",
     href: "#capabilities",
+    view: "composer",
     icon: Cpu,
     badge: "v0.3.0",
     badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
@@ -59,12 +62,14 @@ export const DEFAULT_QUANTUM_FEATURES = [
     title: "Bloch Sphere 3D Telemetry",
     description: "Real-time statevector projection, qubit spherical coordinates (θ, φ), and phase evolution.",
     href: "#capabilities",
+    view: "composer",
     icon: Activity,
   },
   {
     title: "OpenQASM 3.0 Standard",
     description: "Direct syntax parsing, Pauli decomposition, and bi-directional AST circuit serialization.",
     href: "#architecture",
+    view: "composer",
     icon: Binary,
     badge: "Standard",
     badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
@@ -73,6 +78,7 @@ export const DEFAULT_QUANTUM_FEATURES = [
     title: "Clifford+T Gate Synthesis",
     description: "Fault-tolerant unitary approximation and hardware-efficient gate mapping.",
     href: "#capabilities",
+    view: "composer",
     icon: Atom,
   },
   {
@@ -89,6 +95,7 @@ export const DEFAULT_QUANTUM_USE_CASES = [
     title: "Bell State (|Φ⁺⟩ & |Ψ⁻⟩)",
     description: "Maximally entangled two-qubit Einstein-Podolsky-Rosen state; foundational entanglement resource.",
     href: "#algorithms",
+    view: "marketplace",
     icon: Sparkles,
     badge: "Foundations",
   },
@@ -96,6 +103,7 @@ export const DEFAULT_QUANTUM_USE_CASES = [
     title: "Grover's 2-Qubit Search",
     description: "Quadratic O(√N) speedup finding an unstructured database target (|11⟩).",
     href: "#algorithms",
+    view: "marketplace",
     icon: Zap,
     badge: "Search",
   },
@@ -103,6 +111,7 @@ export const DEFAULT_QUANTUM_USE_CASES = [
     title: "VQE: Molecular Hydrogen (H₂)",
     description: "Hardware-efficient ansatz parameterized for ground-state electronic energy calculation.",
     href: "#algorithms",
+    view: "marketplace",
     icon: Atom,
     badge: "Chemistry",
   },
@@ -110,6 +119,7 @@ export const DEFAULT_QUANTUM_USE_CASES = [
     title: "Quantum Teleportation Protocol",
     description: "Transfers unknown state of Q0 to Q2 using pre-shared EPR entanglement and classical feedforward.",
     href: "#algorithms",
+    view: "marketplace",
     icon: Compass,
     badge: "Protocol",
   },
@@ -124,18 +134,21 @@ export const DEFAULT_QUANTUM_RESOURCE_GROUPS = [
         title: "FastAPI Documentation (/docs)",
         description: "Interactive Swagger UI and REST endpoints for circuit simulation.",
         href: "#docs",
+        view: "docs",
         icon: FileCode,
       },
       {
         title: "JSON Artifact Schema",
         description: "Deterministic structured run telemetry, fidelity matrices, and shot counts.",
         href: "#architecture",
+        view: "docs",
         icon: Code2,
       },
       {
         title: "SQLite Database Runs",
         description: "Local historical persistence of execution shots and statevectors.",
         href: "#history",
+        view: "history",
         icon: Database,
       },
     ],
@@ -147,6 +160,7 @@ export const DEFAULT_QUANTUM_RESOURCE_GROUPS = [
         title: "Continuous Integration Benchmarks",
         description: "97/97 passing deterministic unit tests with zero memory leaks.",
         href: "#benchmarks",
+        view: "benchmarks",
         icon: CheckCircle2,
       },
       {
@@ -296,7 +310,7 @@ export function MegaMenuNavbar({
                         href={item.href}
                         onClick={(e) => {
                           e.preventDefault();
-                          handleLinkClick(item.href);
+                          handleLinkClick(item.href, item.view);
                         }}
                         className="group flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-cyan-500/20"
                       >
@@ -378,7 +392,7 @@ export function MegaMenuNavbar({
                         href={item.href}
                         onClick={(e) => {
                           e.preventDefault();
-                          handleLinkClick(item.href);
+                          handleLinkClick(item.href, item.view);
                         }}
                         className="group flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-cyan-500/20"
                       >
@@ -464,7 +478,7 @@ export function MegaMenuNavbar({
                               onClick={(e) => {
                                 if (link.href.startsWith("#")) {
                                   e.preventDefault();
-                                  handleLinkClick(link.href);
+                                  handleLinkClick(link.href, link.view);
                                 }
                               }}
                               target={link.href.startsWith("http") ? "_blank" : undefined}
@@ -495,8 +509,11 @@ export function MegaMenuNavbar({
         {/* Direct Link: Benchmarks */}
         <a
           href="#benchmarks"
-          onClick={() => handleLinkClick("#benchmarks")}
-          className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+          onClick={(e) => {
+            e.preventDefault();
+            handleLinkClick("#benchmarks", "benchmarks");
+          }}
+          className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
         >
           Benchmarks
         </a>
@@ -583,7 +600,7 @@ export function MegaMenuNavbar({
                         href={item.href}
                         onClick={(e) => {
                           e.preventDefault();
-                          handleLinkClick(item.href);
+                          handleLinkClick(item.href, item.view);
                         }}
                         className="block p-2 rounded-lg text-xs text-slate-300 hover:text-cyan-300"
                       >
@@ -612,7 +629,7 @@ export function MegaMenuNavbar({
                         href={item.href}
                         onClick={(e) => {
                           e.preventDefault();
-                          handleLinkClick(item.href);
+                          handleLinkClick(item.href, item.view);
                         }}
                         className="block p-2 rounded-lg text-xs text-slate-300 hover:text-cyan-300"
                       >
@@ -644,7 +661,12 @@ export function MegaMenuNavbar({
                           <a
                             key={li}
                             href={link.href}
-                            onClick={() => handleLinkClick(link.href)}
+                            onClick={(e) => {
+                              if (link.href.startsWith("#")) {
+                                e.preventDefault();
+                              }
+                              handleLinkClick(link.href, link.view);
+                            }}
                             className="block py-1 text-xs text-slate-300 hover:text-cyan-300"
                           >
                             {link.title}

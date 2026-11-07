@@ -9,8 +9,83 @@ export function QuantumProvider({ children }) {
   // Theme state: dark / light
   const [theme, setTheme] = useState(() => localStorage.getItem('quantumforge_theme') || 'dark');
 
-  // Navigation view
-  const [activeView, setActiveView] = useState('landing'); // 'landing' | 'composer' | 'marketplace' | 'benchmarks' | 'docs' | 'history'
+  // Helper to extract view from URL hash (#/dna, #/composer, etc.)
+  const getViewFromHash = () => {
+    if (typeof window === 'undefined') return 'landing';
+    const hash = window.location.hash.replace(/^#\/?/, '').trim();
+    const validViews = ['landing', 'composer', 'marketplace', 'dna', 'benchmarks', 'docs', 'history'];
+    return validViews.includes(hash) ? hash : 'landing';
+  };
+
+  // Navigation view with browser hash and history synchronization
+  const [activeView, setActiveViewState] = useState(getViewFromHash);
+  const [previousView, setPreviousView] = useState(null);
+
+  // Q-DNA Studio persistent state across views and sessions
+  const [dnaPayload, setDnaPayloadState] = useState(() => {
+    return localStorage.getItem('quantumforge_qdna_payload') || 'QuantumForge 2026: Quantum-Optimized DNA Storage';
+  });
+  const [dnaSelectedOligoIdx, setDnaSelectedOligoIdx] = useState(0);
+
+  const setDnaPayload = useCallback((payload) => {
+    setDnaPayloadState(payload);
+    try {
+      localStorage.setItem('quantumforge_qdna_payload', payload);
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  // Browser History synchronization (popstate & hashchange)
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const targetView = getViewFromHash();
+      setActiveViewState((prev) => {
+        if (prev !== targetView) {
+          setPreviousView(prev);
+        }
+        return targetView;
+      });
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
+
+  // Professional Navigation with pushState and previousView tracking
+  const setActiveView = useCallback((newView, replace = false) => {
+    setActiveViewState((prev) => {
+      if (prev !== newView) {
+        setPreviousView(prev);
+      }
+      return newView;
+    });
+
+    const targetHash = newView === 'landing' ? '' : `#/${newView}`;
+    try {
+      if (replace) {
+        window.history.replaceState({ view: newView }, '', targetHash || window.location.pathname);
+      } else {
+        window.history.pushState({ view: newView }, '', targetHash || window.location.pathname);
+      }
+    } catch (e) {
+      window.location.hash = targetHash;
+    }
+  }, []);
+
+  const goBack = useCallback(() => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else if (previousView) {
+      setActiveView(previousView);
+    } else {
+      setActiveView('landing');
+    }
+  }, [previousView, setActiveView]);
 
   // Circuit metadata
   const [circuitName, setCircuitName] = useState('Untitled 3-Qubit Circuit [Bell State + Ancilla]');
@@ -217,13 +292,16 @@ export function QuantumProvider({ children }) {
     recordHistory([]);
   }, [recordHistory]);
 
-  const loadAlgorithm = useCallback((algo) => {
+  const loadAlgorithm = useCallback((algo, fromView = null) => {
     setCircuitName(algo.title);
     setNQubits(algo.n_qubits);
     if (algo.recommendedShots) setShots(algo.recommendedShots);
     recordHistory(algo.operations || []);
+    if (fromView) {
+      setPreviousView(fromView);
+    }
     setActiveView('composer');
-  }, [recordHistory]);
+  }, [recordHistory, setActiveView]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -238,6 +316,13 @@ export function QuantumProvider({ children }) {
         toggleTheme,
         activeView,
         setActiveView,
+        previousView,
+        setPreviousView,
+        goBack,
+        dnaPayload,
+        setDnaPayload,
+        dnaSelectedOligoIdx,
+        setDnaSelectedOligoIdx,
         circuitName,
         setCircuitName,
         nQubits,

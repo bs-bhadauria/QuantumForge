@@ -22,10 +22,16 @@ import {
 } from 'lucide-react';
 
 export default function QDNAStudio() {
-  const { loadAlgorithm } = useQuantum();
+  const {
+    loadAlgorithm,
+    dnaPayload,
+    setDnaPayload,
+    dnaSelectedOligoIdx,
+    setDnaSelectedOligoIdx,
+    setActiveView,
+    goBack,
+  } = useQuantum();
 
-  const [inputPayload, setInputPayload] = useState('QuantumForge 2026: Quantum-Optimized DNA Storage');
-  const [selectedOligoIdx, setSelectedOligoIdx] = useState(0);
   const [copied, setCopied] = useState(false);
 
   // Pre-configured sample payloads
@@ -50,17 +56,17 @@ export default function QDNAStudio() {
 
   // Run QAOA Multi-Oligo Pool optimization
   const pool = useMemo(() => {
-    return optimizeDnaPool(inputPayload, 25);
-  }, [inputPayload]);
+    return optimizeDnaPool(dnaPayload, 25);
+  }, [dnaPayload]);
 
   // Ensure selected index is valid whenever pool changes
   useEffect(() => {
-    if (pool && selectedOligoIdx >= pool.totalOligos) {
-      setSelectedOligoIdx(0);
+    if (pool && dnaSelectedOligoIdx >= pool.totalOligos) {
+      setDnaSelectedOligoIdx(0);
     }
-  }, [pool, selectedOligoIdx]);
+  }, [pool, dnaSelectedOligoIdx, setDnaSelectedOligoIdx]);
 
-  const activeOligo = pool?.oligos[selectedOligoIdx] || pool?.oligos[0];
+  const activeOligo = pool?.oligos[dnaSelectedOligoIdx] || pool?.oligos[0];
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
@@ -70,7 +76,7 @@ export default function QDNAStudio() {
 
   const handleDownloadFasta = () => {
     if (!pool) return;
-    const fastaContent = generateMultiOligoFasta(inputPayload, pool);
+    const fastaContent = generateMultiOligoFasta(dnaPayload, pool);
     const blob = new Blob([fastaContent], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -90,7 +96,7 @@ export default function QDNAStudio() {
       n_qubits: qaoaCircuit.n_qubits,
       recommendedShots: 4096,
       operations: qaoaCircuit.operations,
-    });
+    }, 'dna');
   };
 
   return (
@@ -152,8 +158,8 @@ export default function QDNAStudio() {
               <button
                 key={idx}
                 onClick={() => {
-                  setInputPayload(p.text);
-                  setSelectedOligoIdx(0);
+                  setDnaPayload(p.text);
+                  setDnaSelectedOligoIdx(0);
                 }}
                 className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60 transition-all cursor-pointer"
               >
@@ -164,14 +170,14 @@ export default function QDNAStudio() {
         </div>
 
         <textarea
-          value={inputPayload}
-          onChange={(e) => setInputPayload(e.target.value)}
+          value={dnaPayload}
+          onChange={(e) => setDnaPayload(e.target.value)}
           rows={2}
           className="w-full bg-slate-50 dark:bg-[#070a0f] border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-sm font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
           placeholder="Type or paste any text string to encode into synthetic DNA..."
         />
         <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 font-mono">
-          <span>{inputPayload.length} characters ({inputPayload.length * 8} bits)</span>
+          <span>{dnaPayload.length} characters ({dnaPayload.length * 8} bits)</span>
           {pool && (
             <div className="flex items-center gap-3">
               <span className="text-cyan-400 font-semibold flex items-center gap-1">
@@ -204,11 +210,11 @@ export default function QDNAStudio() {
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1">
             {pool.oligos.map((oligo, idx) => {
-              const isSelected = selectedOligoIdx === idx;
+              const isSelected = dnaSelectedOligoIdx === idx;
               return (
                 <button
                   key={oligo.id}
-                  onClick={() => setSelectedOligoIdx(idx)}
+                  onClick={() => setDnaSelectedOligoIdx(idx)}
                   className={`px-3.5 py-2 rounded-xl text-xs font-mono flex items-center gap-2.5 transition-all cursor-pointer flex-shrink-0 border ${
                     isSelected
                       ? 'bg-cyan-500/20 text-cyan-200 border-cyan-400 shadow-lg shadow-cyan-500/10'
@@ -417,7 +423,7 @@ export default function QDNAStudio() {
                 <Dna className="w-4 h-4 text-cyan-500" /> Synthetic DNA Double-Helix Complementary Strand
                 {pool && pool.totalOligos > 1 && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
-                    Fragment {selectedOligoIdx + 1} of {pool.totalOligos}
+                    Fragment {dnaSelectedOligoIdx + 1} of {pool.totalOligos}
                   </span>
                 )}
               </h3>
